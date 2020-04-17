@@ -20,6 +20,7 @@ import (
 	"fmt"
 	"os"
 	"net"
+	"math/big"
 
 	"os/signal"
 	"strconv"
@@ -254,6 +255,60 @@ func (this *Service) GetTransactionInfo(txhash string,cointype string) map[strin
     }
 
     ret, tip, err := GetTransactionInfo(txhash,cointype)
+    if err != nil {
+	data["result"] = ""
+	return map[string]interface{}{
+		"Status": "Error",
+		"Tip":    tip,
+		"Error":  err.Error(),
+		"Data":   data,
+	}
+    }
+
+    data["result"] = ret
+    return map[string]interface{}{
+	    "Status": "Success",
+	    "Tip":    "",
+	    "Error":  "",
+	    "Data":   data,
+    }
+}
+
+type UnsignTx struct {
+    Tx interface{}
+    TxHash []string
+}
+
+func BuildUnsignedTransaction(fromaddr string,pubkey string,toaddr string,amount string,cointype string) (*UnsignTx,string,error) {
+    h := coins.NewCryptocoinHandler(cointype)
+    if h == nil {
+	return nil,"unsupported cointype",fmt.Errorf("unsupported cointype")
+    }
+
+    value, ok := new(big.Int).SetString(amount, 10)
+    if ok == false {
+	return nil,"get value error",fmt.Errorf("get value error")
+    }
+
+    tx,txhash,err := h.BuildUnsignedTransaction(fromaddr,pubkey,toaddr,value,"")
+    ut := &UnsignTx{Tx:tx,TxHash:txhash}
+    return ut,"",err
+}
+
+func (this *Service) BuildUnsignedTransaction(fromaddr string,pubkey string,toaddr string,amount string,cointype string) map[string]interface{} {
+    fmt.Printf("=====================call rpc BuildUnsignedTransaction, fromaddr = %v, pubkey = %v, toaddr = %v, amount = %v, cointype = %v ===========================\n",fromaddr,pubkey,toaddr,amount,cointype)
+    data := make(map[string]interface{})
+    if fromaddr == "" || pubkey == "" || toaddr == "" || amount == "" || cointype == "" {
+	data["result"] = ""
+	return map[string]interface{}{
+		"Status": "Error",
+		"Tip":    "param error",
+		"Error":  "param error",
+		"Data":   data,
+	}
+    }
+
+    ret, tip, err := BuildUnsignedTransaction(fromaddr,pubkey,toaddr,amount,cointype)
     if err != nil {
 	data["result"] = ""
 	return map[string]interface{}{
