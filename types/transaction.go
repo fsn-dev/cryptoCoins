@@ -34,7 +34,7 @@ import (
 	"github.com/fsn-dev/cryptoCoins/crypto/sha3"
 	"github.com/fsn-dev/cryptoCoins/internal/common"
 	"github.com/fsn-dev/cryptoCoins/internal/common/hexutil"
-	"github.com/fsn-dev/cryptoCoins/p2p/rlp"
+	"github.com/fsn-dev/cryptoCoins/internal/rlp"
 )
 
 //go:generate gencodec -type txdata -field-override txdataMarshaling -out gen_tx_json.go

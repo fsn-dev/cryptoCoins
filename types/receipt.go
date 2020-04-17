@@ -24,7 +24,7 @@ import (
 
 	"github.com/fsn-dev/cryptoCoins/internal/common"
 	"github.com/fsn-dev/cryptoCoins/internal/common/hexutil"
-	"github.com/fsn-dev/cryptoCoins/p2p/rlp"
+	"github.com/fsn-dev/cryptoCoins/internal/rlp"
 )
 
 //go:generate gencodec -type Receipt -field-override receiptMarshaling -out gen_receipt_json.go

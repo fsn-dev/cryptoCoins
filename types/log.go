@@ -21,7 +21,7 @@ import (
 
 	"github.com/fsn-dev/cryptoCoins/internal/common"
 	"github.com/fsn-dev/cryptoCoins/internal/common/hexutil"
-	"github.com/fsn-dev/cryptoCoins/p2p/rlp"
+	"github.com/fsn-dev/cryptoCoins/internal/rlp"
 )
 
 //go:generate gencodec -type Log -field-override logMarshaling -out gen_log_json.go

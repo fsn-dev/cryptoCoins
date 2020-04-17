@@ -11,7 +11,7 @@ export GO111MODULE=on
 export GOPROXY=https://goproxy.io
 
 for mod in $@; do
-    go build -v -o ./bin/cmd/$mod ./cmd/$mod/*.go
+    go build -v -o ./bin/$mod ./cmd/*.go
 done
 
 #/* vim: set ts=4 sts=4 sw=4 et : */
