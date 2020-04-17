@@ -28,6 +28,7 @@ import (
 	"github.com/fsn-dev/cryptoCoins/coins"
 	"gopkg.in/urfave/cli.v1"
 	"encoding/json"
+	"github.com/fsn-dev/cryptoCoins/types"
 )
 
 func main() {
@@ -190,7 +191,69 @@ func GetAddr(pubkey string,cointype string) (string,string,error) {
 func (this *Service) GetAddr(pubkey string,cointype string) map[string]interface{} {
     fmt.Printf("=====================call rpc GetAddr, pubkey = %v, cointype = %v ===========================\n",pubkey,cointype)
     data := make(map[string]interface{})
+    if pubkey == "" || cointype == "" {
+	data["result"] = ""
+	return map[string]interface{}{
+		"Status": "Error",
+		"Tip":    "param error",
+		"Error":  "param error",
+		"Data":   data,
+	}
+    }
+
     ret, tip, err := GetAddr(pubkey,cointype)
+    if err != nil {
+	data["result"] = ""
+	return map[string]interface{}{
+		"Status": "Error",
+		"Tip":    tip,
+		"Error":  err.Error(),
+		"Data":   data,
+	}
+    }
+
+    data["result"] = ret
+    return map[string]interface{}{
+	    "Status": "Success",
+	    "Tip":    "",
+	    "Error":  "",
+	    "Data":   data,
+    }
+}
+
+type TransactionInfo struct {
+    FromAddress string
+    TxOutPuts []types.TxOutput
+    JsonString string
+    Confirmed bool
+    Fee types.Value
+}
+
+func GetTransactionInfo(txhash string,cointype string) (*TransactionInfo,string,error) {
+    h := coins.NewCryptocoinHandler(cointype)
+    if h == nil {
+	return nil,"unsupported cointype",fmt.Errorf("unsupported cointype")
+    }
+
+    from,txout,jsonstr,confir,fee,err := h.GetTransactionInfo(txhash)
+    ti := &TransactionInfo{FromAddress:from,TxOutPuts:txout,JsonString:jsonstr,Confirmed:confir,Fee:fee}
+    return ti,"",err
+}
+
+func (this *Service) GetTransactionInfo(txhash string,cointype string) map[string]interface{} {
+    fmt.Printf("=====================call rpc GetTransactionInfo, txhash = %v, cointype = %v ===========================\n",txhash,cointype)
+    data := make(map[string]interface{})
+    if txhash == "" || cointype == "" {
+	data["result"] = ""
+	return map[string]interface{}{
+		"Status": "Error",
+		"Tip":    "param error",
+		"Error":  "param error",
+		"Data":   data,
+	}
+    }
+
+    ret, tip, err := GetTransactionInfo(txhash,cointype)
     if err != nil {
 	data["result"] = ""
 	return map[string]interface{}{
