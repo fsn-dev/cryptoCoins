@@ -329,3 +329,51 @@ func (this *Service) BuildUnsignedTransaction(fromaddr string,pubkey string,toad
     }
 }
 
+func MakeSignedTransaction(txjson string,rsv string,cointype string) (string,string,error) {
+    h := coins.NewCryptocoinHandler(cointype)
+    if h == nil {
+	return "","unsupported cointype",fmt.Errorf("unsupported cointype")
+    }
+
+    var tx interface{}
+    json.Unmarshal([]byte(txjson), &tx)
+    rsvs := make([]string,0)
+    rsvs = append(rsvs,rsv)
+    signtx,err := h.MakeSignedTransaction(rsvs,tx)
+    b, _ := json.Marshal(signtx)
+    return string(b),"",err
+}
+
+func (this *Service) MakeSignedTransaction(tx string,rsv string,cointype string) map[string]interface{} {
+    fmt.Printf("=====================call rpc MakeSignedTransaction, tx = %v, rsv = %v, cointype = %v ===========================\n",tx,rsv,cointype)
+    data := make(map[string]interface{})
+    if tx == "" || rsv == "" || cointype == "" {
+	data["result"] = ""
+	return map[string]interface{}{
+		"Status": "Error",
+		"Tip":    "param error",
+		"Error":  "param error",
+		"Data":   data,
+	}
+    }
+
+    ret, tip, err := MakeSignedTransaction(tx,rsv,cointype)
+    if err != nil {
+	data["result"] = ""
+	return map[string]interface{}{
+		"Status": "Error",
+		"Tip":    tip,
+		"Error":  err.Error(),
+		"Data":   data,
+	}
+    }
+
+    data["result"] = ret
+    return map[string]interface{}{
+	    "Status": "Success",
+	    "Tip":    "",
+	    "Error":  "",
+	    "Data":   data,
+    }
+}
+
