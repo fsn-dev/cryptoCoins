@@ -275,7 +275,7 @@ func (this *Service) GetTransactionInfo(txhash string,cointype string) map[strin
 }
 
 type UnsignTx struct {
-    Tx interface{}
+    Tx string
     TxHash []string
 }
 
@@ -291,7 +291,8 @@ func BuildUnsignedTransaction(fromaddr string,pubkey string,toaddr string,amount
     }
 
     tx,txhash,err := h.BuildUnsignedTransaction(fromaddr,pubkey,toaddr,value,"")
-    ut := &UnsignTx{Tx:tx,TxHash:txhash}
+    b, _ := json.Marshal(tx)
+    ut := &UnsignTx{Tx:string(b),TxHash:txhash}
     return ut,"",err
 }
 
