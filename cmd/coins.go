@@ -507,3 +507,38 @@ func (this *Service) GetAddressBalance(address string,cointype string) map[strin
     }
 }
 
+func (this *Service) IsToken(cointype string) map[string]interface{} {
+    fmt.Printf("=====================call rpc IsToken, cointype = %v ===========================\n",cointype)
+    data := make(map[string]interface{})
+    if cointype == "" {
+	data["result"] = ""
+	return map[string]interface{}{
+		"Status": "Error",
+		"Tip":    "param error",
+		"Error":  "param error",
+		"Data":   data,
+	}
+    }
+
+    h := coins.NewCryptocoinHandler(cointype)
+    if h == nil {
+	data["result"] = ""
+	return map[string]interface{}{
+		"Status": "Error",
+		"Tip":    "unsupported cointype",
+		"Error":  "unsupported cointype",
+		"Data":   data,
+	}
+    }
+
+    v := h.IsToken()
+
+    data["result"] = v 
+    return map[string]interface{}{
+	    "Status": "Success",
+	    "Tip":    "",
+	    "Error":  "",
+	    "Data":   data,
+    }
+}
+
