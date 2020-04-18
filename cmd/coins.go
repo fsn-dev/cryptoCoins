@@ -459,3 +459,49 @@ func (this *Service) GetDefaultFee(cointype string) map[string]interface{} {
     }
 }
 
+func (this *Service) GetAddressBalance(address string,cointype string) map[string]interface{} {
+    fmt.Printf("=====================call rpc GetAddressBalance, address = %v, cointype = %v ===========================\n",address,cointype)
+    data := make(map[string]interface{})
+    if cointype == "" || address == "" {
+	data["result"] = ""
+	return map[string]interface{}{
+		"Status": "Error",
+		"Tip":    "param error",
+		"Error":  "param error",
+		"Data":   data,
+	}
+    }
+
+    h := coins.NewCryptocoinHandler(cointype)
+    if h == nil {
+	data["result"] = ""
+	return map[string]interface{}{
+		"Status": "Error",
+		"Tip":    "unsupported cointype",
+		"Error":  "unsupported cointype",
+		"Data":   data,
+	}
+    }
+
+    balance,err := h.GetAddressBalance(address,"")
+    if err != nil {
+	data["result"] = ""
+	return map[string]interface{}{
+		"Status": "Error",
+		"Tip":    err.Error(),
+		"Error":  err.Error(),
+		"Data":   data,
+	}
+    }
+
+    b, _ := json.Marshal(&balance)
+
+    data["result"] = string(b) 
+    return map[string]interface{}{
+	    "Status": "Success",
+	    "Tip":    "",
+	    "Error":  "",
+	    "Data":   data,
+    }
+}
+
