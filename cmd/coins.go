@@ -30,6 +30,7 @@ import (
 	"gopkg.in/urfave/cli.v1"
 	"encoding/json"
 	"github.com/fsn-dev/cryptoCoins/types"
+	cryptocoinsconfig "github.com/fsn-dev/cryptoCoins/config"
 )
 
 func main() {
@@ -41,6 +42,8 @@ func main() {
 }
 
 func StartCoins(c *cli.Context) {
+	cryptocoinsconfig.Init()
+	coins.Init()
 	RpcInit(rpcport)
 	select {} // note for server, or for client
 }
@@ -484,6 +487,7 @@ func (this *Service) GetAddressBalance(address string,cointype string) map[strin
     }
 
     balance,err := h.GetAddressBalance(address,"")
+    fmt.Printf("=====================call rpc GetAddressBalance, address = %v, cointype = %v,balance = %v, err = %v ===========================\n",address,cointype,balance,err)
     if err != nil {
 	data["result"] = ""
 	return map[string]interface{}{

@@ -208,11 +208,13 @@ func (h *ETHHandler) GetTransactionInfo(txhash string) (fromAddress string, txOu
 
 func (h *ETHHandler) GetAddressBalance(address string, jsonstring string) (balance ctypes.Balance, err error) {
 	// TODO
+	fmt.Printf("=====================eth.GetAddressBalance, address = %v, url = %v ===========================\n",address,url)
 	client, err := ethclient.Dial(url)
 	if err != nil {
 		return
 	}
 	account := common.HexToAddress(address)
+	fmt.Printf("=====================eth.GetAddressBalance, address = %v, url = %v, account = %v ===========================\n",address,url,account)
 	bal, err := client.BalanceAt(context.Background(), account, nil)
 	if err != nil {
 		return
