@@ -423,3 +423,39 @@ func (this *Service) SubmitTransaction(signtx string,cointype string) map[string
     }
 }
 
+func (this *Service) GetDefaultFee(cointype string) map[string]interface{} {
+    fmt.Printf("=====================call rpc GetDefaultFee, cointype = %v ===========================\n",cointype)
+    data := make(map[string]interface{})
+    if cointype == "" {
+	data["result"] = ""
+	return map[string]interface{}{
+		"Status": "Error",
+		"Tip":    "param error",
+		"Error":  "param error",
+		"Data":   data,
+	}
+    }
+
+    h := coins.NewCryptocoinHandler(cointype)
+    if h == nil {
+	data["result"] = ""
+	return map[string]interface{}{
+		"Status": "Error",
+		"Tip":    "unsupported cointype",
+		"Error":  "unsupported cointype",
+		"Data":   data,
+	}
+    }
+
+    v := h.GetDefaultFee()
+    b, _ := json.Marshal(&v)
+
+    data["result"] = string(b) 
+    return map[string]interface{}{
+	    "Status": "Success",
+	    "Tip":    "",
+	    "Error":  "",
+	    "Data":   data,
+    }
+}
+
