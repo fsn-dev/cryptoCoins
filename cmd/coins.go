@@ -50,7 +50,6 @@ func StartCoins(c *cli.Context) {
 
 var (
 	rpcport   int
-	port      int
 	app       = cli.NewApp()
 )
 
@@ -60,7 +59,6 @@ func init() {
 	app.Action = StartCoins
 	app.Flags = []cli.Flag{
 		cli.IntFlag{Name: "rpcport", Value: 0, Usage: "listen port", Destination: &rpcport},
-		cli.IntFlag{Name: "port", Value: 0, Usage: "listen port", Destination: &port},
 	}
 }
 
