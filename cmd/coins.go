@@ -377,3 +377,49 @@ func (this *Service) MakeSignedTransaction(tx string,rsv string,cointype string)
     }
 }
 
+func SubmitTransaction(signtx string,cointype string) (string,string,error) {
+    h := coins.NewCryptocoinHandler(cointype)
+    if h == nil {
+	return "","unsupported cointype",fmt.Errorf("unsupported cointype")
+    }
+
+    var tx interface{}
+    json.Unmarshal([]byte(signtx), &tx)
+
+    txhash,err := h.SubmitTransaction(tx)
+    return txhash,"",err
+}
+
+func (this *Service) SubmitTransaction(signtx string,cointype string) map[string]interface{} {
+    fmt.Printf("=====================call rpc ,SubmitTransaction, signtx = %v, cointype = %v ===========================\n",signtx,cointype)
+    data := make(map[string]interface{})
+    if signtx == "" || cointype == "" {
+	data["result"] = ""
+	return map[string]interface{}{
+		"Status": "Error",
+		"Tip":    "param error",
+		"Error":  "param error",
+		"Data":   data,
+	}
+    }
+
+    ret, tip, err := SubmitTransaction(signtx,cointype)
+    if err != nil {
+	data["result"] = ""
+	return map[string]interface{}{
+		"Status": "Error",
+		"Tip":    tip,
+		"Error":  err.Error(),
+		"Data":   data,
+	}
+    }
+
+    data["result"] = ret
+    return map[string]interface{}{
+	    "Status": "Success",
+	    "Tip":    "",
+	    "Error":  "",
+	    "Data":   data,
+    }
+}
+
