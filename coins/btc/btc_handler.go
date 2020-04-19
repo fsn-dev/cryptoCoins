@@ -117,7 +117,7 @@ func (h *BTCHandler) PublicKeyToAddress(pubKeyHex string) (address string, err e
 }
 
 // jsonstring: '{"feeRate":0.0001,"changAddress":"mtjq9RmBBDVne7YB4AFHYCZFn3P2AXv9D5"}'
-func (h *BTCHandler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddress string, amount *big.Int, jsonstring string) (transaction interface{}, digests []string, err error) {
+func (h *BTCHandler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddress string, amount *big.Int, jsonstring string,memo string) (transaction interface{}, digests []string, err error) {
 	fmt.Printf("\nBTC handler: %+v\n\n", h)
 	defer func() {
 		if e := recover(); e != nil {
@@ -177,6 +177,17 @@ func (h *BTCHandler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddr
 	pkscript, _ := txscript.PayToAddrScript(toAddr)
 	txOut := wire.NewTxOut(amount.Int64(), pkscript)
 	txOuts = append(txOuts, txOut)
+	//add memo 
+	data := []byte(memo)
+	builder := txscript.NewScriptBuilder()
+	nullScript,err := builder.AddOp(txscript.OP_RETURN).AddData(data).Script()
+	if err != nil {
+	    return
+	}
+	txOut2 := wire.NewTxOut(0, nullScript)
+	txOuts = append(txOuts, txOut2)
+	//
+
 	if len(sourceOutputs) < 1 {
 		err = errContext(err, "cannot find p2pkh utxo")
 		return

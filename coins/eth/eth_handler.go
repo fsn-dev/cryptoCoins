@@ -87,7 +87,7 @@ func (h *ETHHandler) PublicKeyToAddress(pubKeyHex string) (address string, err e
 }
 
 // jsonstring '{"gasPrice":8000000000,"gasLimit":50000}'
-func (h *ETHHandler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddress string, amount *big.Int, jsonstring string) (transaction interface{}, digests []string, err error) {
+func (h *ETHHandler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddress string, amount *big.Int, jsonstring string,memo string) (transaction interface{}, digests []string, err error) {
 	defer func() {
 		if e := recover(); e != nil {
 			err = fmt.Errorf("Runtime error: %v\n%v", e, string(debug.Stack()))
@@ -110,7 +110,7 @@ func (h *ETHHandler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddr
 			gasLimit = uint64(userGasLimit.(float64))
 		}
 	}
-	transaction, hash, err := eth_newUnsignedTransaction(client, fromAddress, toAddress, amount, gasPrice, gasLimit)
+	transaction, hash, err := eth_newUnsignedTransaction(client, fromAddress, toAddress, amount, gasPrice, gasLimit,memo)
 	if err != nil || transaction == nil || hash == nil {
 		return
 	}
@@ -262,7 +262,7 @@ func decodePubkey(e [64]byte) (*ecdsa.PublicKey, error) {
 	return p, nil
 }
 
-func eth_newUnsignedTransaction(client *ethclient.Client, dcrmAddress string, toAddressHex string, amount *big.Int, gasPrice *big.Int, gasLimit uint64) (*ctypes.Transaction, *common.Hash, error) {
+func eth_newUnsignedTransaction(client *ethclient.Client, dcrmAddress string, toAddressHex string, amount *big.Int, gasPrice *big.Int, gasLimit uint64,memo string) (*ctypes.Transaction, *common.Hash, error) {
 
 	fmt.Printf("================ amount = %v ================\n", amount)
 	fmt.Printf("================ gasPrice = %v ================\n", gasPrice)
@@ -307,7 +307,7 @@ func eth_newUnsignedTransaction(client *ethclient.Client, dcrmAddress string, to
 
 	fmt.Printf("================ gasLimit = %v ================\n", gasLimit)
 	fmt.Printf("================ gasPrice = %v ================\n", gasPrice)
-	tx := ctypes.NewTransaction(nonce, toAddress, value, gasLimit, gasPrice, nil)
+	tx := ctypes.NewTransaction(nonce, toAddress, value, gasLimit, gasPrice, []byte(memo))
 
 	signer := ctypes.NewEIP155Signer(chainID)
 	txhash := signer.Hash(tx)

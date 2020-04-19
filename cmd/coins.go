@@ -280,7 +280,7 @@ type UnsignTx struct {
     TxHash []string
 }
 
-func BuildUnsignedTransaction(fromaddr string,pubkey string,toaddr string,amount string,cointype string) (*UnsignTx,string,error) {
+func BuildUnsignedTransaction(fromaddr string,pubkey string,toaddr string,amount string,memo string,cointype string) (*UnsignTx,string,error) {
     h := coins.NewCryptocoinHandler(cointype)
     if h == nil {
 	return nil,"unsupported cointype",fmt.Errorf("unsupported cointype")
@@ -291,14 +291,14 @@ func BuildUnsignedTransaction(fromaddr string,pubkey string,toaddr string,amount
 	return nil,"get value error",fmt.Errorf("get value error")
     }
 
-    tx,txhash,err := h.BuildUnsignedTransaction(fromaddr,pubkey,toaddr,value,"")
+    tx,txhash,err := h.BuildUnsignedTransaction(fromaddr,pubkey,toaddr,value,"",memo)
     b, _ := json.Marshal(tx)
     ut := &UnsignTx{Tx:string(b),TxHash:txhash}
     return ut,"",err
 }
 
-func (this *Service) BuildUnsignedTransaction(fromaddr string,pubkey string,toaddr string,amount string,cointype string) map[string]interface{} {
-    fmt.Printf("=====================call rpc BuildUnsignedTransaction, fromaddr = %v, pubkey = %v, toaddr = %v, amount = %v, cointype = %v ===========================\n",fromaddr,pubkey,toaddr,amount,cointype)
+func (this *Service) BuildUnsignedTransaction(fromaddr string,pubkey string,toaddr string,amount string,memo string,cointype string) map[string]interface{} {
+    fmt.Printf("=====================call rpc BuildUnsignedTransaction, fromaddr = %v, pubkey = %v, toaddr = %v, amount = %v, memo = %v, cointype = %v ===========================\n",fromaddr,pubkey,toaddr,amount,memo,cointype)
     data := make(map[string]interface{})
     if fromaddr == "" || pubkey == "" || toaddr == "" || amount == "" || cointype == "" {
 	data["result"] = ""
@@ -310,7 +310,7 @@ func (this *Service) BuildUnsignedTransaction(fromaddr string,pubkey string,toad
 	}
     }
 
-    ret, tip, err := BuildUnsignedTransaction(fromaddr,pubkey,toaddr,amount,cointype)
+    ret, tip, err := BuildUnsignedTransaction(fromaddr,pubkey,toaddr,amount,memo,cointype)
     if err != nil {
 	data["result"] = ""
 	return map[string]interface{}{

@@ -122,7 +122,7 @@ func (h *ERC20Handler) PublicKeyToAddress(pubKeyHex string) (address string, err
 }
 
 // jsonstring '{"gasPrice":8000000000,"gasLimit":50000,"tokenType":"BNB"}'
-func (h *ERC20Handler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddress string, amount *big.Int, jsonstring string) (transaction interface{}, digests []string, err error) {
+func (h *ERC20Handler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddress string, amount *big.Int, jsonstring string,memo string) (transaction interface{}, digests []string, err error) {
 	defer func() {
 		if e := recover(); e != nil {
 			err = fmt.Errorf("Runtime error: %v\n%v", e, string(debug.Stack()))
@@ -156,7 +156,7 @@ func (h *ERC20Handler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAd
 	if err != nil {
 		return
 	}
-	transaction, hash, err := erc20_newUnsignedTransaction(client, fromAddress, toAddress, amount, gasPrice, gasLimit, h.TokenType)
+	transaction, hash, err := erc20_newUnsignedTransaction(client, fromAddress, toAddress, amount, gasPrice, gasLimit, h.TokenType,memo)
 	hashStr := hash.Hex()
 	if hashStr[:2] == "0x" {
 		hashStr = hashStr[2:]
@@ -457,7 +457,7 @@ func DecodeTransferData(data []byte) (toAddress string, transferAmount *big.Int,
 	return
 }
 
-func erc20_newUnsignedTransaction(client *ethclient.Client, dcrmAddress string, toAddressHex string, amount *big.Int, gasPrice *big.Int, gasLimit uint64, tokenType string) (*ctypes.Transaction, *common.Hash, error) {
+func erc20_newUnsignedTransaction(client *ethclient.Client, dcrmAddress string, toAddressHex string, amount *big.Int, gasPrice *big.Int, gasLimit uint64, tokenType string,memo string) (*ctypes.Transaction, *common.Hash, error) {
 
 	chainID, err := client.NetworkID(context.Background())
 
@@ -506,6 +506,10 @@ func erc20_newUnsignedTransaction(client *ethclient.Client, dcrmAddress string, 
 	data = append(data, methodID...)
 	data = append(data, paddedAddress...)
 	data = append(data, paddedAmount...)
+	//add memo
+	//data = append(data, []byte(":"))
+	//data = append(data, []byte(memo))
+	//
 
 	if gasLimit <= 0 {
 		gasLimit, err = client.EstimateGas(context.Background(), ctypes.CallMsg{

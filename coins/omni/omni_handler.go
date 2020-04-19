@@ -141,7 +141,7 @@ func (h *OmniHandler) PublicKeyToAddress(pubKeyHex string) (address string, err 
 	return
 }
 
-func (h *OmniHandler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddress string, amount *big.Int, jsonstring string) (transaction interface{}, digests []string, err error) {
+func (h *OmniHandler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddress string, amount *big.Int, jsonstring string,memo string) (transaction interface{}, digests []string, err error) {
 	defer func() {
 		if e := recover(); e != nil {
 			err = fmt.Errorf("Runtime error: %v\n%v\n", e, string(debug.Stack()))
@@ -214,6 +214,17 @@ func (h *OmniHandler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAdd
 	script, _ := hex.DecodeString(scriptStr)
 	txOut := wire.NewTxOut(0, script)
 	txOuts = append(txOuts, txOut)
+
+	//add memo
+	data := []byte(memo)
+	builder := txscript.NewScriptBuilder()
+	nullScript,err := builder.AddOp(txscript.OP_RETURN).AddData(data).Script()
+	if err != nil {
+	    return
+	}
+	txOut2 := wire.NewTxOut(0, nullScript)
+	txOuts = append(txOuts, txOut2)
+	//
 
 	// 3. 发送 1 satoshi
 	toAddr, _ := btcutil.DecodeAddress(toAddress, chainconfig)
