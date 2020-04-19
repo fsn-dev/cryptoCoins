@@ -401,6 +401,19 @@ func XRP_newUnsignedPaymentTransaction(key crypto.Key, keyseq *uint32, txseq uin
 	}
 	payment.TransactionType = data.PAYMENT
 
+	// add memo
+	payment.Memos = append(payment.Memos,data.Memo{
+		Memo: struct{
+			MemoType data.VariableLength
+			MemoData data.VariableLength
+			MemoFormat data.VariableLength
+		}{
+			MemoType:   data.VariableLength([]byte("memo")),
+			MemoData:   data.VariableLength([]byte(memo)),
+			MemoFormat: data.VariableLength([]byte("plain")),
+		},
+	})
+
 	if path != "" {
 		payment.Paths = parsePaths(path)
 	}

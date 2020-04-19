@@ -415,6 +415,9 @@ func EOS_newUnsignedTransaction(fromAcctName, toAcctName string, amount *big.Int
 	s := strconv.FormatFloat(float64(amount.Int64())/10000, 'f', 4, 64) + " EOS"
 	quantity, _ := eos.NewAsset(s)
 
+	if memo != "" {
+		memo2 = memo2 + "|" + memo
+	}
 	transfer := &eos.Action{
 		Account: eos.AN("eosio.token"),
 		Name:    eos.ActN("transfer"),

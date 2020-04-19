@@ -118,7 +118,8 @@ func (h *EvtHandler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddr
 		From:   fromAddress,
 		To:     toAddress,
 		Number: number,
-		Memo:   "this is a dcrm lockout (^_^)",
+		//Memo:   "this is a dcrm lockout (^_^)",
+		Memo:   memo,
 	}
 	actarg := chain.ActionArguments{
 		Action: "transferft",

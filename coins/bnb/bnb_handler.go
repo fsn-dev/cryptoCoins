@@ -163,7 +163,8 @@ func (h *BNBHandler) BNB_buildSendTx(fromAddress, fromPublicKey, toAddress strin
 		AccountNumber: acc.Number,
 		Sequence:      acc.Sequence,
 		Msgs:          []msg.Msg{sendMsg},
-		Memo:          "this is a Dcrm lockout transaction (^_^)",
+		//Memo:          "this is a Dcrm lockout transaction (^_^)",
+		Memo:          memo,
 		Source:        tx.Source,
 	}
 
