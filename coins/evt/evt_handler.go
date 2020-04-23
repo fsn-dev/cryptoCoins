@@ -27,9 +27,9 @@ import (
 	"time"
 
 	"github.com/btcsuite/btcd/btcec"
-	"github.com/fsn-dev/cryptoCoins/config"
+	"github.com/fsn-dev/cryptoCoins/coins/config"
 	"github.com/fsn-dev/cryptoCoins/coins/eos"
-	"github.com/fsn-dev/cryptoCoins/types"
+	"github.com/fsn-dev/cryptoCoins/coins/types"
 
 	//"github.com/ellsol/evt/ecc"
 	//"github.com/ellsol/evt/evtapi/client"
@@ -39,13 +39,13 @@ import (
 	//"github.com/ellsol/evt/evtconfig"
 	//"github.com/ellsol/evt/evttypes"
 
-	"github.com/fsn-dev/cryptoCoins/internal/evt/ecc"
-	"github.com/fsn-dev/cryptoCoins/internal/evt/evtapi/client"
-	"github.com/fsn-dev/cryptoCoins/internal/evt/evtapi/v1/chain"
-	"github.com/fsn-dev/cryptoCoins/internal/evt/evtapi/v1/evt"
-	"github.com/fsn-dev/cryptoCoins/internal/evt/evtapi/v1/history"
-	"github.com/fsn-dev/cryptoCoins/internal/evt/evtconfig"
-	"github.com/fsn-dev/cryptoCoins/internal/evt/evttypes"
+	"github.com/fsn-dev/cryptoCoins/tools/evt/ecc"
+	"github.com/fsn-dev/cryptoCoins/tools/evt/evtapi/client"
+	"github.com/fsn-dev/cryptoCoins/tools/evt/evtapi/v1/chain"
+	"github.com/fsn-dev/cryptoCoins/tools/evt/evtapi/v1/evt"
+	"github.com/fsn-dev/cryptoCoins/tools/evt/evtapi/v1/history"
+	"github.com/fsn-dev/cryptoCoins/tools/evt/evtconfig"
+	"github.com/fsn-dev/cryptoCoins/tools/evt/evttypes"
 	"github.com/sirupsen/logrus"
 )
 

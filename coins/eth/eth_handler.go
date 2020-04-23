@@ -27,13 +27,13 @@ import (
 	"runtime/debug"
 	"strings"
 
-	"github.com/fsn-dev/cryptoCoins/config"
+	"github.com/fsn-dev/cryptoCoins/coins/config"
 	"github.com/fsn-dev/cryptoCoins/coins/eth/ethclient"
 	"github.com/fsn-dev/cryptoCoins/coins/eth/sha3"
-	ctypes "github.com/fsn-dev/cryptoCoins/types"
-	ethcrypto "github.com/fsn-dev/cryptoCoins/crypto"
-	"github.com/fsn-dev/cryptoCoins/internal/common"
-	"github.com/fsn-dev/cryptoCoins/internal/params"
+	ctypes "github.com/fsn-dev/cryptoCoins/coins/types"
+	ethcrypto "github.com/fsn-dev/cryptoCoins/tools/crypto"
+	"github.com/fsn-dev/cryptoCoins/tools/common"
+	"github.com/fsn-dev/cryptoCoins/tools/params"
 )
 
 func ETHInit() {

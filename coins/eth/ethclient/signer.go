@@ -20,8 +20,8 @@ import (
 	"errors"
 	"math/big"
 
-	"github.com/fsn-dev/cryptoCoins/types"
-	"github.com/fsn-dev/cryptoCoins/internal/common"
+	"github.com/fsn-dev/cryptoCoins/coins/types"
+	"github.com/fsn-dev/cryptoCoins/tools/common"
 )
 
 // senderFromServer is a types.Signer that remembers the sender address returned by the RPC

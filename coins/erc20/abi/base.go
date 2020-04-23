@@ -22,10 +22,10 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/fsn-dev/cryptoCoins/types"
-	"github.com/fsn-dev/cryptoCoins/crypto"
-	"github.com/fsn-dev/cryptoCoins/internal/common"
-	"github.com/fsn-dev/cryptoCoins/internal/event"
+	"github.com/fsn-dev/cryptoCoins/coins/types"
+	"github.com/fsn-dev/cryptoCoins/tools/crypto"
+	"github.com/fsn-dev/cryptoCoins/tools/common"
+	"github.com/fsn-dev/cryptoCoins/tools/event"
 )
 
 // SignerFn is a signer function callback when a contract requires a method to

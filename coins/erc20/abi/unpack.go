@@ -22,7 +22,7 @@ import (
 	"math/big"
 	"reflect"
 
-	"github.com/fsn-dev/cryptoCoins/internal/common"
+	"github.com/fsn-dev/cryptoCoins/tools/common"
 )
 
 var (

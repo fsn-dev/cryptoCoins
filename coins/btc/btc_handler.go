@@ -26,11 +26,11 @@ import (
 	"github.com/btcsuite/btcwallet/wallet/txauthor"
 	"github.com/btcsuite/btcwallet/wallet/txrules"
 
-	"github.com/fsn-dev/cryptoCoins/crypto"
+	"github.com/fsn-dev/cryptoCoins/tools/crypto"
 	//	"github.com/fsn-dev/cryptoCoins/log"
-	"github.com/fsn-dev/cryptoCoins/config"
-	rpcutils "github.com/fsn-dev/cryptoCoins/rpcutils"
-	"github.com/fsn-dev/cryptoCoins/types"
+	"github.com/fsn-dev/cryptoCoins/coins/config"
+	rpcutils "github.com/fsn-dev/cryptoCoins/coins/rpcutils"
+	"github.com/fsn-dev/cryptoCoins/coins/types"
 )
 
 func BTCInit() {

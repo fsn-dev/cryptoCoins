@@ -21,9 +21,9 @@ import (
 	"strings"
 
 	"github.com/fsn-dev/cryptoCoins/coins/erc20/abi"
-	"github.com/fsn-dev/cryptoCoins/types"
-	"github.com/fsn-dev/cryptoCoins/internal/common"
-	"github.com/fsn-dev/cryptoCoins/internal/event"
+	"github.com/fsn-dev/cryptoCoins/coins/types"
+	"github.com/fsn-dev/cryptoCoins/tools/common"
+	"github.com/fsn-dev/cryptoCoins/tools/event"
 )
 
 // TokenABI is the input ABI used to generate the abiing from.

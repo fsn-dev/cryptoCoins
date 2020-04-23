@@ -31,18 +31,18 @@ import (
 	"time"
 
 	"github.com/fsn-dev/cryptoCoins/coins/eth/ethclient"
-	ethcrypto "github.com/fsn-dev/cryptoCoins/crypto"
-	"github.com/fsn-dev/cryptoCoins/internal/common"
-	"github.com/fsn-dev/cryptoCoins/internal/params"
+	ethcrypto "github.com/fsn-dev/cryptoCoins/tools/crypto"
+	"github.com/fsn-dev/cryptoCoins/tools/common"
+	"github.com/fsn-dev/cryptoCoins/tools/params"
 
-	"github.com/fsn-dev/cryptoCoins/config"
-	rpcutils "github.com/fsn-dev/cryptoCoins/rpcutils"
+	"github.com/fsn-dev/cryptoCoins/coins/config"
+	rpcutils "github.com/fsn-dev/cryptoCoins/coins/rpcutils"
 
 	"github.com/fsn-dev/cryptoCoins/coins/erc20/abi"
 	"github.com/fsn-dev/cryptoCoins/coins/erc20/token"
 	ethhandler "github.com/fsn-dev/cryptoCoins/coins/eth"
 	"github.com/fsn-dev/cryptoCoins/coins/eth/sha3"
-	ctypes "github.com/fsn-dev/cryptoCoins/types"
+	ctypes "github.com/fsn-dev/cryptoCoins/coins/types"
 )
 
 func ERC20Init() {

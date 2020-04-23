@@ -22,8 +22,8 @@ import (
 	"math/big"
 	"reflect"
 
-	"github.com/fsn-dev/cryptoCoins/crypto"
-	"github.com/fsn-dev/cryptoCoins/internal/common"
+	"github.com/fsn-dev/cryptoCoins/tools/crypto"
+	"github.com/fsn-dev/cryptoCoins/tools/common"
 )
 
 // makeTopics converts a filter query argument list into a filter topic set.

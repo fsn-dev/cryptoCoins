@@ -27,8 +27,8 @@ import (
 	"github.com/btcsuite/btcd/chaincfg"
 	"github.com/btcsuite/btcutil"
 	"github.com/fsn-dev/cryptoCoins/coins/btc"
-	"github.com/fsn-dev/cryptoCoins/config"
-	"github.com/fsn-dev/cryptoCoins/types"
+	"github.com/fsn-dev/cryptoCoins/coins/config"
+	"github.com/fsn-dev/cryptoCoins/coins/types"
 	addrconv "github.com/schancel/cashaddr-converter/address"
 )
 

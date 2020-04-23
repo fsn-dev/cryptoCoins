@@ -20,7 +20,7 @@ import (
 	"math/big"
 	"strings"
 
-	"github.com/fsn-dev/cryptoCoins/types"
+	"github.com/fsn-dev/cryptoCoins/coins/types"
 
 	"github.com/fsn-dev/cryptoCoins/coins/atom"
 	"github.com/fsn-dev/cryptoCoins/coins/bch"
@@ -35,7 +35,7 @@ import (
 	"github.com/fsn-dev/cryptoCoins/coins/trx"
 	"github.com/fsn-dev/cryptoCoins/coins/xrp"
 
-	config "github.com/fsn-dev/cryptoCoins/config"
+	config "github.com/fsn-dev/cryptoCoins/coins/config"
 )
 
 var Coinmap map[string]string = make(map[string]string)

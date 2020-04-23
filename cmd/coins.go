@@ -25,12 +25,12 @@ import (
 	"os/signal"
 	"strconv"
 	"strings"
-	rpc "github.com/fsn-dev/cryptoCoins/internal/rpcservice"
+	rpc "github.com/fsn-dev/cryptoCoins/tools/rpcservice"
 	"github.com/fsn-dev/cryptoCoins/coins"
 	"gopkg.in/urfave/cli.v1"
 	"encoding/json"
-	"github.com/fsn-dev/cryptoCoins/types"
-	cryptocoinsconfig "github.com/fsn-dev/cryptoCoins/config"
+	"github.com/fsn-dev/cryptoCoins/coins/types"
+	cryptocoinsconfig "github.com/fsn-dev/cryptoCoins/coins/config"
 )
 
 func main() {

@@ -25,11 +25,11 @@ import (
 	"fmt"
 	"math/big"
 
-	"github.com/fsn-dev/cryptoCoins/types"
-	"github.com/fsn-dev/cryptoCoins/internal/common"
-	"github.com/fsn-dev/cryptoCoins/internal/common/hexutil"
-	"github.com/fsn-dev/cryptoCoins/internal/rlp"
-	rpc "github.com/fsn-dev/cryptoCoins/internal/rpcservice"
+	"github.com/fsn-dev/cryptoCoins/coins/types"
+	"github.com/fsn-dev/cryptoCoins/tools/common"
+	"github.com/fsn-dev/cryptoCoins/tools/common/hexutil"
+	"github.com/fsn-dev/cryptoCoins/tools/rlp"
+	rpc "github.com/fsn-dev/cryptoCoins/tools/rpcservice"
 )
 
 // Client defines typed wrappers for the Ethereum RPC API.

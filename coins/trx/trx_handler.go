@@ -28,11 +28,11 @@ import (
 	"runtime/debug"
 
 	tcrypto "github.com/fsn-dev/cryptoCoins/coins/trx/crypto"
-	"github.com/fsn-dev/cryptoCoins/crypto"
+	"github.com/fsn-dev/cryptoCoins/tools/crypto"
 
-	"github.com/fsn-dev/cryptoCoins/config"
-	rpcutils "github.com/fsn-dev/cryptoCoins/rpcutils"
-	"github.com/fsn-dev/cryptoCoins/types"
+	"github.com/fsn-dev/cryptoCoins/coins/config"
+	rpcutils "github.com/fsn-dev/cryptoCoins/coins/rpcutils"
+	"github.com/fsn-dev/cryptoCoins/coins/types"
 )
 
 func TRXInit() {

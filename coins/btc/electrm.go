@@ -8,9 +8,9 @@ import (
 	"sort"
 
 	"github.com/btcsuite/btcd/btcjson"
-	"github.com/fsn-dev/cryptoCoins/config"
-	rpcutils "github.com/fsn-dev/cryptoCoins/rpcutils"
-	"github.com/fsn-dev/cryptoCoins/internal/common"
+	"github.com/fsn-dev/cryptoCoins/coins/config"
+	rpcutils "github.com/fsn-dev/cryptoCoins/coins/rpcutils"
+	"github.com/fsn-dev/cryptoCoins/tools/common"
 )
 
 func ListUnspent_electrs(addr string) (list []btcjson.ListUnspentResult, balance *big.Int, err error) {

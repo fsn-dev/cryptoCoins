@@ -17,9 +17,9 @@ import (
 	"os"
 
 	"github.com/astaxie/beego/logs"
-	"github.com/fsn-dev/cryptoCoins/config"
-	"github.com/fsn-dev/cryptoCoins/rpcutils"
-	"github.com/fsn-dev/cryptoCoins/internal/ethdb"
+	"github.com/fsn-dev/cryptoCoins/coins/config"
+	"github.com/fsn-dev/cryptoCoins/coins/rpcutils"
+	"github.com/fsn-dev/cryptoCoins/tools/ethdb"
 )
 
 var (

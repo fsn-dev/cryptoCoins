@@ -36,8 +36,8 @@ import (
 	"github.com/eoscanada/eos-go/token"
 	"github.com/rubblelabs/ripple/crypto"
 
-	rpcutils "github.com/fsn-dev/cryptoCoins/rpcutils"
-	"github.com/fsn-dev/cryptoCoins/types"
+	rpcutils "github.com/fsn-dev/cryptoCoins/coins/rpcutils"
+	"github.com/fsn-dev/cryptoCoins/coins/types"
 )
 
 func EOSInit() {

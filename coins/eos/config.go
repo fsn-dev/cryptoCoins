@@ -19,7 +19,7 @@ package eos
 import (
 	eos "github.com/eoscanada/eos-go"
 
-	"github.com/fsn-dev/cryptoCoins/config"
+	"github.com/fsn-dev/cryptoCoins/coins/config"
 )
 
 func EOSConfigInit() {

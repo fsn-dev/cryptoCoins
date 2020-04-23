@@ -32,9 +32,9 @@ import (
 	"github.com/rubblelabs/ripple/crypto"
 	"github.com/rubblelabs/ripple/data"
 
-	"github.com/fsn-dev/cryptoCoins/config"
-	rpcutils "github.com/fsn-dev/cryptoCoins/rpcutils"
-	"github.com/fsn-dev/cryptoCoins/types"
+	"github.com/fsn-dev/cryptoCoins/coins/config"
+	rpcutils "github.com/fsn-dev/cryptoCoins/coins/rpcutils"
+	"github.com/fsn-dev/cryptoCoins/coins/types"
 )
 
 func XRPInit() {
