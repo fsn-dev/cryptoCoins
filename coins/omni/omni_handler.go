@@ -328,7 +328,9 @@ func (h *OmniHandler) SubmitTransaction(signedTransaction interface{}) (ret stri
 	return
 }
 
-func (h *OmniHandler) GetTransactionInfo(txhash string) (fromAddress string, txOutputs []types.TxOutput, jsonstring string, confirmed bool, fee types.Value, err error) {
+//func (h *OmniHandler) GetTransactionInfo(txhash string) (fromAddress string, txOutputs []types.TxOutput, jsonstring string, confirmed bool, fee types.Value, err error) {
+func (h *OmniHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo, error) {
+    var err error
 	defer func() {
 		if e := recover(); e != nil {
 			err = fmt.Errorf("Runtime error: %v\n%v", e, string(debug.Stack()))
@@ -336,26 +338,34 @@ func (h *OmniHandler) GetTransactionInfo(txhash string) (fromAddress string, txO
 		}
 	}()
 
-	fee = h.GetDefaultFee()
+	txinfo := &types.TransactionInfo{}
+	fee := h.GetDefaultFee()
 	client, _ := rpcutils.NewClient(config.ApiGateways.OmniGateway.Host, config.ApiGateways.OmniGateway.Port, config.ApiGateways.OmniGateway.User, config.ApiGateways.OmniGateway.Passwd, config.ApiGateways.OmniGateway.Usessl)
 	reqstr := `{"jsonrpc":"1.0","id":"1","method":"omni_gettransaction","params":["` + txhash + `"]}`
 	ret, err1 := client.Send(reqstr)
 	if err1 != nil {
 		err = err1
-		return
+		return nil,err
 	}
 
 	if ret == "" {
 		err = fmt.Errorf("failed get transaction")
-		return
+		return nil,err
 	}
 	omniTx := DecodeOmniTx(ret)
 	if omniTx.Error != nil {
 		err = omniTx.Error
-		return
+		return nil,err
 	}
 
-	confirmed = (omniTx.Confirmations >= btc.RequiredConfirmations) && omniTx.Valid
+	//confirmed = (omniTx.Confirmations >= btc.RequiredConfirmations) && omniTx.Valid
+	confirmed := (omniTx.Confirmations >= btc.RequiredConfirmations) && omniTx.Valid
+	txinfo.Confirmed = confirmed
+	if omniTx.Valid {
+	    txinfo.Confirm = int(omniTx.Confirmations)
+	} else {
+	    txinfo.Confirm = 0 
+	}
 	//**************************
 	//	confirmed = true
 	//**************************
@@ -365,21 +375,25 @@ func (h *OmniHandler) GetTransactionInfo(txhash string) (fromAddress string, txO
 		err = fmt.Errorf("property name does not match: have %v want %v", omniTx.PropertyName, h.propertyName)
 	}
 
-	fromAddress = omniTx.From
+	//fromAddress = omniTx.From
+	txinfo.FromAddress = omniTx.From
 	txOutput := types.TxOutput{
 		ToAddress: omniTx.To,
 		Amount:    omniTx.Amount,
 	}
+	txOutputs := make([]types.TxOutput,0)
 	txOutputs = append(txOutputs, txOutput)
+	txinfo.TxOutputs = txOutputs
 	fmt.Printf("========== OMNI_GetTransactionInfo ========\n")
-	fmt.Printf("fromAddress: %v\ntxOutputs: %+v\n", fromAddress, txOutputs)
+	fmt.Printf("fromAddress: %v\ntxOutputs: %+v\n", txinfo.FromAddress, txinfo.TxOutputs)
 
 	if omniTx.Fee != "" {
 		feeStr := toSatoshi(omniTx.Fee)
 		fee.Val, _ = new(big.Int).SetString(feeStr, 10)
 	}
+	txinfo.Fee = fee
 
-	return
+	return txinfo,err
 }
 
 func toSatoshi(str string) string {

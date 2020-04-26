@@ -231,7 +231,9 @@ func (h *EvtHandler) SubmitTransaction(signedTransaction interface{}) (txhash st
 	return
 }
 
-func (h *EvtHandler) GetTransactionInfo(txhash string) (fromAddress string, txOutputs []types.TxOutput, jsonstring string, confirmed bool, fee types.Value, err error) {
+//func (h *EvtHandler) GetTransactionInfo(txhash string) (fromAddress string, txOutputs []types.TxOutput, jsonstring string, confirmed bool, fee types.Value, err error) {
+func (h *EvtHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo, error) {
+    var err error
 	defer func() {
 		if e := recover(); e != nil {
 			err = fmt.Errorf("Runtime error: %v\n%v", e, string(debug.Stack()))
@@ -239,6 +241,9 @@ func (h *EvtHandler) GetTransactionInfo(txhash string) (fromAddress string, txOu
 		}
 	}()
 
+	txinfo := &types.TransactionInfo{}
+	txOutputs := make([]types.TxOutput,0)
+	var fee types.Value
 	fee = h.GetDefaultFee()
 	// TODO 获取真实fee
 	// EVT1 transfer 不消耗手续费?
@@ -251,10 +256,11 @@ func (h *EvtHandler) GetTransactionInfo(txhash string) (fromAddress string, txOu
 	res, apierr := apihistory.GetTransaction(txhash)
 	if apierr != nil {
 		err = apierr.Error()
-		return
+		return nil,err
 	}
-	confirmed = true
-	fromAddress = res.InnerTransaction.Payer
+	txinfo.Confirmed = true
+	//fromAddress = res.InnerTransaction.Payer
+	txinfo.FromAddress = res.InnerTransaction.Payer
 	actions := res.InnerTransaction.Actions
 	var transfer *chain.Action
 	for _, act := range actions {
@@ -267,7 +273,9 @@ func (h *EvtHandler) GetTransactionInfo(txhash string) (fromAddress string, txOu
 			txOutputs = append(txOutputs, *txout)
 		}
 	}
-	return
+	txinfo.TxOutputs = txOutputs
+	txinfo.Fee = fee
+	return txinfo,err
 }
 
 func parseAction(tarid uint, transfer *chain.Action) (*types.TxOutput, error) {

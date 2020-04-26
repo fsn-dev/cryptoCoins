@@ -223,23 +223,14 @@ func (this *Service) GetAddr(pubkey string,cointype string) map[string]interface
     }
 }
 
-type TransactionInfo struct {
-    FromAddress string
-    TxOutPuts []types.TxOutput
-    JsonString string
-    Confirmed bool
-    Fee types.Value
-}
-
-func GetTransactionInfo(txhash string,cointype string) (*TransactionInfo,string,error) {
+func GetTransactionInfo(txhash string,cointype string) (*types.TransactionInfo,string,error) {
     h := coins.NewCryptocoinHandler(cointype)
     if h == nil {
 	return nil,"unsupported cointype",fmt.Errorf("unsupported cointype")
     }
 
-    from,txout,jsonstr,confir,fee,err := h.GetTransactionInfo(txhash)
-    ti := &TransactionInfo{FromAddress:from,TxOutPuts:txout,JsonString:jsonstr,Confirmed:confir,Fee:fee}
-    return ti,"",err
+    txinfo,err := h.GetTransactionInfo(txhash)
+    return txinfo,"",err
 }
 
 func (this *Service) GetTransactionInfo(txhash string,cointype string) map[string]interface{} {

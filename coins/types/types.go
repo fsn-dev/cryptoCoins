@@ -22,6 +22,15 @@ import (
 	"github.com/fsn-dev/cryptoCoins/tools/common"
 )
 
+type TransactionInfo struct {
+    FromAddress string
+    TxOutputs []TxOutput
+    Jsonstring string
+    Confirmed bool
+    Confirm int
+    Fee Value
+}
+
 type TxOutput struct {
 	ToAddress string
 	Amount    *big.Int

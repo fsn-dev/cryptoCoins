@@ -208,23 +208,30 @@ func (h *ERC20Handler) SubmitTransaction(signedTransaction interface{}) (ret str
 	return erc20_sendTx(client, signedTransaction.(*ctypes.Transaction))
 }
 
-func (h *ERC20Handler) GetTransactionInfo(txhash string) (fromAddress string, txOutputs []ctypes.TxOutput, jsonstring string, confirmed bool, fee ctypes.Value, err error) {
+//func (h *ERC20Handler) GetTransactionInfo(txhash string) (fromAddress string, txOutputs []ctypes.TxOutput, jsonstring string, confirmed bool, fee ctypes.Value, err error) {
+func (h *ERC20Handler) GetTransactionInfo(txhash string) (*ctypes.TransactionInfo, error) {
+    var err error
 	defer func() {
 		if e := recover(); e != nil {
 			err = fmt.Errorf("Runtime error: %v\n%v", e, string(debug.Stack()))
 			return
 		}
 	}()
+
+	var jsonstring string
+	txinfo := &ctypes.TransactionInfo{}
+	txOutputs := make([]ctypes.TxOutput,0)
 	var realGasPrice *big.Int
 	realGasPrice = gasPrice
 	client, err := ethclient.Dial(url)
 	if err != nil {
-		return
+		return nil,err
 	}
 	hash := common.HexToHash(txhash)
 	tx, isPending, err1 := client.TransactionByHash(context.Background(), hash)
 	fmt.Printf("erc20.GetTransactionInfo", "hash", hash, "tx", tx, "isPending", isPending, "err1", err1)
-	confirmed = !isPending
+	//confirmed = !isPending
+	txinfo.Confirmed = !isPending
 	if err1 == nil && isPending == false && tx != nil {
 		msg, err2 := tx.AsMessage(ctypes.MakeSigner(chainConfig, GetLastBlock()))
 		realGasPrice = msg.GasPrice()
@@ -242,11 +249,12 @@ func (h *ERC20Handler) GetTransactionInfo(txhash string) (fromAddress string, tx
 		//bug
 		if jsonstring == "" {
 			err = errors.New("get token type fail.")
-			return
+			return nil,err
 		}
 		//
 
-		fromAddress = msg.From().Hex()
+		//fromAddress = msg.From().Hex()
+		txinfo.FromAddress = msg.From().Hex()
 		data := msg.Data()
 
 		fmt.Printf("========ERC20 GetTransactionInfo========", "data", data)
@@ -258,7 +266,7 @@ func (h *ERC20Handler) GetTransactionInfo(txhash string) (fromAddress string, tx
 		txOutputs = append(txOutputs, txOutput)
 		if decodeErr != nil {
 			err = decodeErr
-			return
+			return nil,err
 		}
 	} else if err1 != nil {
 		err = err1
@@ -273,12 +281,12 @@ func (h *ERC20Handler) GetTransactionInfo(txhash string) (fromAddress string, tx
 	r, receipterr := client.TransactionReceipt(ctx, hash)
 	if receipterr != nil {
 		err = fmt.Errorf("get transaction receipt fail " + receipterr.Error())
-		return
+		return nil,err
 	}
 	fmt.Printf("===============erc20.GetTransactionInfo,", "receipt", r, "", "=================")
 	if r == nil {
 		err = fmt.Errorf("get transaction receipt fail")
-		return
+		return nil,err
 	}
 
 	// status
@@ -312,10 +320,14 @@ func (h *ERC20Handler) GetTransactionInfo(txhash string) (fromAddress string, tx
 		err = fmt.Errorf("excute contract error")
 	}
 
+	var fee ctypes.Value
 	fee.Cointype = h.TokenType
 	fee.Val = new(big.Int).Mul(realGasPrice, big.NewInt(int64(r.GasUsed)))
+	txinfo.Fee = fee
 
-	return
+	txinfo.TxOutputs = txOutputs
+	txinfo.Jsonstring = jsonstring
+	return txinfo,err
 }
 
 // jsonstring:'{"tokenType":"BNB"}'

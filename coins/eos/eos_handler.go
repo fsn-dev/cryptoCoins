@@ -132,7 +132,8 @@ type SubmitTxRes struct {
 	Error          interface{} `json:"error,omitempty"`
 }
 
-func (h *EOSHandler) GetTransactionInfo(txhash string) (fromAddress string, txOutputs []types.TxOutput, jsonstring string, confirmed bool, fee types.Value, err error) {
+//func (h *EOSHandler) GetTransactionInfo(txhash string) (fromAddress string, txOutputs []types.TxOutput, jsonstring string, confirmed bool, fee types.Value, err error) {
+func (h *EOSHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo, error) {
 	/*	api := "v1/history/get_transaction"
 		data := `{"id":"` + txhash + `","block_num_hint":"0"}`
 		ret := rpcutils.DoCurlRequest(nodeos, api, data)
@@ -163,27 +164,29 @@ func (h *EOSHandler) GetTransactionInfo(txhash string) (fromAddress string, txOu
 		txOutputs = append(txOutputs, txOutput)
 		return
 	*/
+
+	var err error
 	req := BALANCE_SERVER + "get_tx?txhash=" + txhash
 	resp, err1 := http.Get(req)
 	if err1 != nil {
 		err = err1
-		return
+		return nil,err
 	}
 	defer resp.Body.Close()
 	body, err2 := ioutil.ReadAll(resp.Body)
 	if err2 != nil {
 		err = err2
-		return
+		return nil,err
 	}
 	var b interface{}
 	err3 := json.Unmarshal(body, &b)
 	if err3 != nil {
 		err = err3
-		return
+		return nil,err
 	}
 	txstrI := b.(map[string]interface{})["Tx"]
 	if txstrI == nil {
-		return
+		return nil,err
 	}
 	txstr := txstrI.(string)
 	txstr = strings.Replace(txstr, "\\", "", -1)
@@ -191,19 +194,23 @@ func (h *EOSHandler) GetTransactionInfo(txhash string) (fromAddress string, txOu
 	err4 := json.Unmarshal([]byte(txstr), &eostx)
 	if err4 != nil {
 		err = err4
-		return
+		return nil,err
 	}
-	fromAddress = eostx.FromAddress
+	fromAddress := eostx.FromAddress
+
+	txOutputs := make([]types.TxOutput,0)
 	for _, x := range eostx.TxOutputs {
 		txOutputs = append(txOutputs, *x.ToTxOutput())
 	}
 
 	// eos transaction confirmed
-	confirmed = eostx.Confirmed
+	confirmed := eostx.Confirmed
+	var fee types.Value
 	fee.Cointype = "EOS"
 	fee.Val = big.NewInt(eostx.Fee)
 
-	return
+	txinfo := &types.TransactionInfo{FromAddress:fromAddress,TxOutputs:txOutputs,Jsonstring:"",Confirmed:confirmed,Confirm:0,Fee:fee}
+	return txinfo,err
 }
 
 type EOSTx struct {

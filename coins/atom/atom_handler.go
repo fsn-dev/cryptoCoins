@@ -242,13 +242,19 @@ func (h *AtomHandler) SubmitTransaction(signedTransaction interface{}) (txhash s
 	return
 }
 
-func (h *AtomHandler) GetTransactionInfo(txhash string) (fromAddress string, txOutputs []types.TxOutput, jsonstring string, confirmed bool, fee types.Value, err error) {
+//func (h *AtomHandler) GetTransactionInfo(txhash string) (fromAddress string, txOutputs []types.TxOutput, jsonstring string, confirmed bool, fee types.Value, err error) {
+func (h *AtomHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo, error) {
+    var err error
 	defer func() {
 		if e := recover(); e != nil {
 			err = fmt.Errorf("Runtime error: %v\n%v", e, string(debug.Stack()))
 			return
 		}
 	}()
+
+	txOutputs := make([]types.TxOutput,0)
+	txinfo := &types.TransactionInfo{}
+	var fee types.Value
 	fee = h.GetDefaultFee()
 
 	c := context.NewCLIContext()
@@ -266,11 +272,11 @@ func (h *AtomHandler) GetTransactionInfo(txhash string) (fromAddress string, txO
 	txhashb, err := hex.DecodeString(txhash)
 	node, err := c.GetNode()
 	if err != nil {
-		return
+		return nil,err
 	}
 	resTx, err := node.Tx([]byte(txhashb), true)
 	if err != nil {
-		return
+		return nil,err
 	}
 
 	fmt.Printf("\n========\nresTx:\n%+v\n========\n", resTx)
@@ -280,7 +286,7 @@ func (h *AtomHandler) GetTransactionInfo(txhash string) (fromAddress string, txO
 	err = cdc.UnmarshalBinaryLengthPrefixed(resTx.Tx, &tx)
 	fmt.Printf("tx:\n%+v\nerr:\n%v\n", tx, err)
 
-	fromAddress = (tx.Msgs[0].(MsgSend)).From.String()
+	txinfo.FromAddress = (tx.Msgs[0].(MsgSend)).From.String()
 	toAddress := (tx.Msgs[0].(MsgSend)).To.String()
 	amount := (tx.Msgs[0].(MsgSend)).Amount[0].Amount.String()
 	amt, _ := new(big.Int).SetString(amount, 10)
@@ -289,8 +295,9 @@ func (h *AtomHandler) GetTransactionInfo(txhash string) (fromAddress string, txO
 		Amount:    amt,
 	})
 
-	return
-
+	txinfo.Fee = fee
+	txinfo.TxOutputs = txOutputs
+	return txinfo,err
 }
 
 func (h *AtomHandler) GetAddressBalance(address string, jsonstring string) (balance types.Balance, err error) {

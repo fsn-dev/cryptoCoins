@@ -129,7 +129,8 @@ type CryptocoinHandler interface {
 	// 根据交易hash查交易信息
 	// fromAddress 交易发起方地址
 	// txOutputs 交易输出切片, txOutputs[i].ToAddress 第i条交易接收方地址, txOutputs[i].Amount 第i条交易转账金额
-	GetTransactionInfo(txhash string) (fromAddress string, txOutputs []types.TxOutput, jsonstring string, confirmed bool, fee types.Value, err error)
+	//GetTransactionInfo(txhash string) (fromAddress string, txOutputs []types.TxOutput, jsonstring string, confirmed bool, fee types.Value, err error)
+	GetTransactionInfo(txhash string) (txinfo *types.TransactionInfo, err error)
 
 	// 账户查账户余额
 	GetAddressBalance(address string, jsonstring string) (balance types.Balance, err error)

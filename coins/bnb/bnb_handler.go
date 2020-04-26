@@ -262,39 +262,45 @@ func (h *BNBHandler) SubmitTransaction(signedTransaction interface{}) (txhash st
 	return
 }
 
-func (h *BNBHandler) GetTransactionInfo(txhash string) (fromAddress string, txOutputs []types.TxOutput, jsonstring string, confirmed bool, fee types.Value, err error) {
+//func (h *BNBHandler) GetTransactionInfo(txhash string) (fromAddress string, txOutputs []types.TxOutput, jsonstring string, confirmed bool, fee types.Value, err error) {
+func (h *BNBHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo, error) {
+    var err error
 	defer func() {
 		if e := recover(); e != nil {
 			err = fmt.Errorf("BNB_GetTransactionInfo Runtime error: %v\n%v", e, string(debug.Stack()))
 			return
 		}
 	}()
-	confirmed = false
+
+	txinfo := &types.TransactionInfo{}
+	txOutputs := make([]types.TxOutput,0)
+	confirmed := false
 	c := basic.NewClient("testnet-dex.binance.org:443")
 	resp, err := c.GetTx(txhash)
 	if err != nil {
-		return
+		return nil,err
 	}
 	// TODO
 	confirmed = true
+	var fee types.Value
 	fee.Cointype = "BNB"
 	fee.Val = big.NewInt(37500)
 	b, err := hex.DecodeString(resp.Data[3 : len(resp.Data)-1])
 	if err != nil {
-		return
+		return nil,err
 	}
 	codec := bnbtypes.NewCodec()
 	var parsedTx tx.StdTx
 	err = codec.UnmarshalBinaryLengthPrefixed(b, &parsedTx)
 	if err != nil {
-		return
+		return nil,err
 	}
 	msgs := parsedTx.Msgs
 	for _, m := range msgs {
 		if m.Type() == "send" {
 			sendmsg := m.(msg.SendMsg)
 			if sendmsg.Inputs[0].Coins[0].Denom == h.Symbol {
-				fromAddress = sendmsg.Inputs[0].Address.String()
+				txinfo.FromAddress = sendmsg.Inputs[0].Address.String()
 			}
 			for _, out := range sendmsg.Outputs {
 				if out.Coins[0].Denom == h.Symbol {
@@ -308,7 +314,11 @@ func (h *BNBHandler) GetTransactionInfo(txhash string) (fromAddress string, txOu
 			break
 		}
 	}
-	return
+
+	txinfo.Fee = fee
+	txinfo.Confirmed = confirmed
+	txinfo.TxOutputs = txOutputs
+	return txinfo,err
 }
 
 func (h *BNBHandler) GetAddressBalance(address string, jsonstring string) (balance types.Balance, err error) {

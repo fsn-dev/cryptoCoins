@@ -161,28 +161,36 @@ func (h *ETHHandler) SubmitTransaction(signedTransaction interface{}) (txhash st
 	return eth_sendTx(client, signedTransaction.(*ctypes.Transaction))
 }
 
-func (h *ETHHandler) GetTransactionInfo(txhash string) (fromAddress string, txOutputs []ctypes.TxOutput, jsonstring string, confirmed bool, fee ctypes.Value, err error) {
+//func (h *ETHHandler) GetTransactionInfo(txhash string) (fromAddress string, txOutputs []ctypes.TxOutput, jsonstring string, confirmed bool, fee ctypes.Value, err error) {
+func (h *ETHHandler) GetTransactionInfo(txhash string) (*ctypes.TransactionInfo, error) {
+    var err error
 	client, err := ethclient.Dial(url)
 	if err != nil {
-		return
+		return nil,err
 	}
+
+	txinfo := &ctypes.TransactionInfo{}
 	hash := common.HexToHash(txhash)
 	tx, isPending, err1 := client.TransactionByHash(context.Background(), hash)
-	confirmed = !isPending
+	//confirmed = !isPending
+	txinfo.Confirmed = !isPending
 	var realGasPrice *big.Int
 	realGasPrice = gasPrice
 	if err1 == nil && isPending == false && tx != nil {
 		msg, err2 := tx.AsMessage(ctypes.MakeSigner(chainConfig, GetLastBlock()))
 		realGasPrice = msg.GasPrice()
 		err = err2
-		fromAddress = msg.From().Hex()
+		//fromAddress = msg.From().Hex()
+		txinfo.FromAddress = msg.From().Hex()
 		toAddress := msg.To().Hex()
 		transferAmount := msg.Value()
 		txOutput := ctypes.TxOutput{
 			ToAddress: toAddress,
 			Amount:    transferAmount,
 		}
+		txOutputs := make([]ctypes.TxOutput,0)
 		txOutputs = append(txOutputs, txOutput)
+		txinfo.TxOutputs = txOutputs
 	} else if err1 != nil {
 		err = err1
 	} else {
@@ -192,18 +200,20 @@ func (h *ETHHandler) GetTransactionInfo(txhash string) (fromAddress string, txOu
 	r, receipterr := client.TransactionReceipt(context.Background(), hash)
 	if receipterr != nil {
 		err = fmt.Errorf("get transaction receipt fail " + receipterr.Error())
-		return
+		return nil,err
 	}
 	//fmt.Printf("===============eth.GetTransactionInfo,","receipt",r,"","=================")
 	fmt.Printf("===============eth.GetTransactionInfo,receipt = %v=================\n", r)
 	if r == nil {
 		err = fmt.Errorf("get transaction receipt fail")
-		return
+		return nil,err
 	}
 
+	var fee ctypes.Value
 	fee.Val = new(big.Int).Mul(realGasPrice, big.NewInt(int64(r.GasUsed)))
+	txinfo.Fee = fee
 
-	return
+	return txinfo,err
 }
 
 func (h *ETHHandler) GetAddressBalance(address string, jsonstring string) (balance ctypes.Balance, err error) {

@@ -193,13 +193,18 @@ func (h *XRPHandler) SubmitTransaction(signedTransaction interface{}) (txhash st
 	return
 }
 
-func (h *XRPHandler) GetTransactionInfo(txhash string) (fromAddress string, txOutputs []types.TxOutput, jsonstring string, confirmed bool, fee types.Value, err error) {
+//func (h *XRPHandler) GetTransactionInfo(txhash string) (fromAddress string, txOutputs []types.TxOutput, jsonstring string, confirmed bool, fee types.Value, err error) {
+func (h *XRPHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo, error) {
+    var err error
 	defer func() {
 		if e := recover(); e != nil {
 			err = fmt.Errorf("Runtime error: %v\n%v", e, string(debug.Stack()))
 			return
 		}
 	}()
+
+	txOutputs := make([]types.TxOutput,0)
+	txinfo := &types.TransactionInfo{}
 	data := "{\"method\":\"tx\", \"params\":[{\"transaction\":\"" + txhash + "\", \"binary\":false}]}"
 	ret := rpcutils.DoPostRequest(url, "", data)
 
@@ -209,10 +214,10 @@ func (h *XRPHandler) GetTransactionInfo(txhash string) (fromAddress string, txOu
 
 	if result["error"] != nil {
 		err = fmt.Errorf("%v, error code: %v,  error message: %v", result["error"].(string), result["error_code"].(float64), result["error_message"].(string))
-		return
+		return nil,err
 	}
 
-	fromAddress = result["Account"].(string)
+	txinfo.FromAddress = result["Account"].(string)
 	toAddress := result["Destination"].(string)
 	amt := result["Amount"].(string)
 	transferAmount, _ := new(big.Int).SetString(amt, 10)
@@ -221,6 +226,7 @@ func (h *XRPHandler) GetTransactionInfo(txhash string) (fromAddress string, txOu
 		Amount:    transferAmount,
 	})
 
+	var fee types.Value
 	feestr := result["Fee"].(string)
 	feeval, ok := new(big.Int).SetString(feestr, 10)
 	if !ok {
@@ -230,11 +236,15 @@ func (h *XRPHandler) GetTransactionInfo(txhash string) (fromAddress string, txOu
 	}
 
 	// xrp transaction confirmed
-	confirmed = false
+	confirmed := false
 	if result["status"].(string) == "success" && result["validated"].(bool) == true {
 		confirmed = true
 	}
-	return
+
+	txinfo.Confirmed = confirmed
+	txinfo.TxOutputs = txOutputs
+	txinfo.Fee = fee
+	return txinfo,err
 }
 
 func (h *XRPHandler) GetAddressBalance(address string, jsonstring string) (balance types.Balance, err error) {

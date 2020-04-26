@@ -169,15 +169,21 @@ func (h *TRXHandler) SubmitTransaction(signedTransaction interface{}) (txhash st
 	return
 }
 
-func (h *TRXHandler) GetTransactionInfo(txhash string) (fromAddress string, txOutputs []types.TxOutput, jsonstring string, confirmed bool, fee types.Value, err error) {
+//func (h *TRXHandler) GetTransactionInfo(txhash string) (fromAddress string, txOutputs []types.TxOutput, jsonstring string, confirmed bool, fee types.Value, err error) {
+func (h *TRXHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo, error) {
+    var err error
 	defer func() {
 		if e := recover(); e != nil {
 			err = fmt.Errorf("Runtime error: %v\n%v", e, string(debug.Stack()))
 			return
 		}
 	}()
+
+	txinfo := &types.TransactionInfo{}
+	var fee types.Value
+	txOutputs := make([]types.TxOutput,0)
 	fee = h.GetDefaultFee()
-	confirmed = false
+	confirmed := false
 	data, err := json.Marshal(struct {
 		Value string `json:"value"`
 	}{
@@ -190,12 +196,12 @@ func (h *TRXHandler) GetTransactionInfo(txhash string) (fromAddress string, txOu
 
 	if len(tx.Raw_data.Contract) == 0 {
 		err = fmt.Errorf("Transaction not found")
-		return
+		return nil,err
 	}
 
 	tf := tx.Raw_data.Contract[0].(map[string]interface{})["parameter"].(map[string]interface{})["value"].(map[string]interface{})
 
-	fromAddress = tf["owner_address"].(string)
+	txinfo.FromAddress = tf["owner_address"].(string)
 	toAddress := tf["to_address"].(string)
 	transferAmount := big.NewInt(int64(tf["amount"].(float64)))
 	txOutput := types.TxOutput{
@@ -206,22 +212,26 @@ func (h *TRXHandler) GetTransactionInfo(txhash string) (fromAddress string, txOu
 
 	ret2 := rpcutils.DoPostRequest(URL, "walletsolidity/gettransactioninfobyid", reqData)
 	//fmt.Printf("\n\nret:\n%v\n\n\n\n", ret2)
-	txinfo := TransactionInfo{
+	txinfo2 := TransactionInfo{
 		BlockTimeStamp: 0,
 	}
-	err1 := json.Unmarshal([]byte(ret2), &txinfo)
+	err1 := json.Unmarshal([]byte(ret2), &txinfo2)
 	if err1 != nil {
 		err = fmt.Errorf("decode transaction info error: " + err1.Error())
-		return
+		return nil,err
 	}
-	//fmt.Printf("\n\n\n\n!!!!!!!! TRX txinfo:\n%+v\n\n\n\n\n\n", txinfo)
-	if &(txinfo.Receipt) != nil && txinfo.BlockTimeStamp != 0 && txinfo.BlockTimeStamp <= tx.Raw_data.Expiration && txinfo.BlockTimeStamp >= tx.Raw_data.Timestamp {
+	//fmt.Printf("\n\n\n\n!!!!!!!! TRX txinfo:\n%+v\n\n\n\n\n\n", txinfo2)
+	if &(txinfo2.Receipt) != nil && txinfo2.BlockTimeStamp != 0 && txinfo2.BlockTimeStamp <= tx.Raw_data.Expiration && txinfo2.BlockTimeStamp >= tx.Raw_data.Timestamp {
 		confirmed = true
 	}
-	fee.Val = big.NewInt(int64(txinfo.Fee))
+	fee.Val = big.NewInt(int64(txinfo2.Fee))
 	fmt.Printf("\nfee: %+v\n", fee)
 	fmt.Printf("\nconfirmed: %v\n\n", confirmed)
-	return
+
+	txinfo.Confirmed = confirmed
+	txinfo.TxOutputs = txOutputs
+	txinfo.Fee = fee
+	return txinfo,err
 }
 
 func (h *TRXHandler) GetAddressBalance(address string, jsonstring string) (balance types.Balance, err error) {

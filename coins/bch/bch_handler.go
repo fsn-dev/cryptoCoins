@@ -119,14 +119,25 @@ func (h *BCHHandler) SubmitTransaction(signedTransaction interface{}) (ret strin
 	return h.btcHandler.SubmitTransaction(signedTransaction)
 }
 
-func (h *BCHHandler) GetTransactionInfo(txhash string) (fromAddress string, txOutputs []types.TxOutput, jsonstring string, confirmed bool, fee types.Value, err error) {
-	fromAddress, txOutputs, jsonstring, confirmed, fee, err = h.btcHandler.GetTransactionInfo(txhash)
-	fee.Cointype = "BCH"
-	fromAddress = CovertToCashAddress(fromAddress)
-	for _, txoutput := range txOutputs {
-		txoutput.ToAddress = CovertToCashAddress(txoutput.ToAddress)
+//func (h *BCHHandler) GetTransactionInfo(txhash string) (fromAddress string, txOutputs []types.TxOutput, jsonstring string, confirmed bool, fee types.Value, err error) {
+func (h *BCHHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo, error) {
+    var err error
+	//fromAddress, txOutputs, jsonstring, confirmed, fee, err = h.btcHandler.GetTransactionInfo(txhash)
+	txinfo, err := h.btcHandler.GetTransactionInfo(txhash)
+	if txinfo == nil {
+	    return nil,err
 	}
-	return
+
+	outputs := make([]types.TxOutput,0)
+	txinfo.Fee.Cointype = "BCH"
+	txinfo.FromAddress = CovertToCashAddress(txinfo.FromAddress)
+	for _, txoutput := range txinfo.TxOutputs {
+		txoutput.ToAddress = CovertToCashAddress(txoutput.ToAddress)
+		outputs = append(outputs,txoutput)
+	}
+
+	txinfo.TxOutputs = outputs
+	return txinfo,err
 }
 
 func CovertToCashAddress(btcaddrAddress string) (cashAddress string) {
