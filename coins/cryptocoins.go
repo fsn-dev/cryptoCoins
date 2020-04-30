@@ -80,7 +80,7 @@ func Init() {
 // only main net coins
 //var Cointypes []string = []string{"ALL","BTC","ETH","XRP","EOS","USDT","ATOM","BCH","TRX","BNB","EVT1","ERC20BNB","ERC20GUSD","ERC20MKR","ERC20HT","ERC20RMBT","EVT1001","BEP2GZX_754"}
 //var Cointypes []string = []string{"ALL","BTC","ETH","ATOM","BCH","TRX","BNB","ERC20BNB","ERC20GUSD","ERC20MKR","ERC20HT","ERC20RMBT","BEP2GZX_754"}  //tmp delete EOS XRP EVT1 EVT1001 USDT
-var Cointypes []string = []string{"ALL", "FSN", "ETH", "BTC"} //tmp only left FSN ETH BTC
+var Cointypes []string = []string{"ALL", "FSN", "ETH", "BTC", "ATOM", "BCH", "BNB", "EOS", "EVT1", "ERC20GUSD", "ERC20MKR", "ERC20HT", "ERC20BNB", "ERC20BNT", "ERC20RMBT", "TRX", "XRP"} 
 //BEP2--->BEP2GZX_754
 
 func IsCoinSupported(cointype string) bool {
