@@ -78,6 +78,7 @@ var Tokens map[string]string = map[string]string{
 	"ERC20HT":   "0x3C3d51f6BE72B265fe5a5C6326648C4E204c8B9a",
 	"ERC20BNT":  "0x14D5913C8396d43aB979D4B29F2102c1C65E18Db",
 	"ERC20RMBT": "0x72778a05fc72dd56d5b5a6bac2f045a2a1eb78f2",
+	"ERC20USDT": "0x2f915d8c6d8340e1291492df153706c1beca50e8",
 }
 
 type ERC20Handler struct {
