@@ -155,9 +155,9 @@ func (h *BTCHandler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddr
 		if !unspentOutput.Spendable {
 			continue
 		}
-		if unspentOutput.Confirmations < RequiredConfirmations {
-			continue
-		}
+		//if unspentOutput.Confirmations < RequiredConfirmations {
+		//	continue
+		//}
 		b, _ := hex.DecodeString(unspentOutput.ScriptPubKey)
 		pkScript, err := txscript.ParsePkScript(b)
 		if err != nil {
