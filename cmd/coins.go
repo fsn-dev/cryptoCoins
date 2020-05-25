@@ -350,6 +350,7 @@ func (this *Service) MakeSignedTransaction(tx string,rsv string,cointype string)
     }
 
     ret, tip, err := MakeSignedTransaction(tx,rsv,cointype)
+    fmt.Printf("=====================finish call rpc MakeSignedTransaction, ret = %v, err = %v, ===========================\n",ret,err)
     if err != nil {
 	data["result"] = ""
 	return map[string]interface{}{

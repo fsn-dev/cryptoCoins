@@ -19,6 +19,8 @@ package coins
 import (
 	"regexp"
 	"strings"
+	"github.com/btcsuite/btcd/chaincfg"
+	"github.com/btcsuite/btcutil"
 )
 
 var RegExpmap map[string]string = map[string]string{
@@ -40,9 +42,11 @@ var RegExpmap map[string]string = map[string]string{
 
 type AddressValidator struct {
 	Exp string
+	Cointype string
 }
 
 func NewAddressValidator(cointype string) *AddressValidator {
+        ct := cointype
 	if strings.HasPrefix(cointype, "ERC20") {
 		cointype = "ETH"
 	}
@@ -57,6 +61,7 @@ func NewAddressValidator(cointype string) *AddressValidator {
 	}
 	return &AddressValidator{
 		Exp: RegExpmap[cointype],
+		Cointype:ct,
 	}
 }
 
@@ -68,6 +73,16 @@ func NewDcrmAddressValidator(cointype string) *AddressValidator {
 }
 
 func (v *AddressValidator) IsValidAddress(address string) bool {
+	if strings.EqualFold(v.Cointype,"BTC") {
+	    chainConfig := &chaincfg.TestNet3Params
+	    addr, err := btcutil.DecodeAddress(address, chainConfig)
+	    if err != nil {
+		    return false
+	    }
+	    return addr.IsForNet(chainConfig)
+	}
+	
 	match, _ := regexp.MatchString(v.Exp, address)
 	return match
 }
+
