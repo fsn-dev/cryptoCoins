@@ -403,6 +403,11 @@ func (this *Service) MakeSignedTransaction(tx string,rsv string,cointype string)
 	}
     }
 
+    rsvs := []rune(rsv)
+    if string(rsvs[0:2]) == "0x" {
+	rsv = string(rsvs[2:])
+    }
+
     ret, tip, err := MakeSignedTransaction(tx,rsv,cointype)
     fmt.Printf("=====================finish call rpc MakeSignedTransaction, ret = %v, err = %v, ===========================\n",ret,err)
     if err != nil {

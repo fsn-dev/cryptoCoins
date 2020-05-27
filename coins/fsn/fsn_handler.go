@@ -341,11 +341,6 @@ func makeSignedTransaction(client *ethclient.Client, tx *ctypes.Transaction, rsv
 	//}
 	chainID := chainConfig.ChainID
 
-	rsvs := []rune(rsv)
-	if string(rsvs[0:2]) == "0x" {
-	    rsv = string(rsvs[2:])
-	}
-
 	message, err := hex.DecodeString(rsv)
 	if err != nil {
 		fmt.Println("=============== makeSignedTransaction,1111 err = %v ===============\n",err)
