@@ -28,6 +28,7 @@ import (
 	rpc "github.com/fsn-dev/cryptoCoins/tools/rpcservice"
 	"github.com/fsn-dev/cryptoCoins/coins"
 	"gopkg.in/urfave/cli.v1"
+	"github.com/fsn-dev/cryptoCoins/tools/common"
 	"encoding/json"
 	"github.com/fsn-dev/cryptoCoins/coins/types"
 	cryptocoinsconfig "github.com/fsn-dev/cryptoCoins/coins/config"
@@ -328,11 +329,64 @@ func MakeSignedTransaction(txjson string,rsv string,cointype string) (string,str
     }
 
     var tx interface{}
-    json.Unmarshal([]byte(txjson), &tx)
+    err := json.Unmarshal([]byte(txjson), &tx)
+    if err != nil {
+	fmt.Printf("==================MakeSignedTransaction,unmarshal txjson,err = %v ====================\n",err)
+	return "","",err
+    }
+    tx2,ok := tx.(map[string]interface{})
+    if ok == false {
+	return "","",fmt.Errorf("tx json data error")
+    }
+    s := fmt.Sprintf("%v",tx2["to"])
+    to,ok := new(big.Int).SetString(s,0)
+    if ok == false {
+	return "","",fmt.Errorf("tx json data error")
+    }
+    toaddr := common.BigToAddress(to)
+    s = fmt.Sprintf("%v",tx2["input"])
+    input,ok := new(big.Int).SetString(s,0)
+    if ok == false {
+	return "","",fmt.Errorf("tx json data error")
+    }
+    data := input.Bytes()
+    s = fmt.Sprintf("%v",tx2["nonce"])
+    nonce,ok := new(big.Int).SetString(s,0)
+    if ok == false {
+	return "","",fmt.Errorf("tx json data error")
+    }
+    n := nonce.Uint64()
+    s = fmt.Sprintf("%v",tx2["gasPrice"])
+    gasprice,ok := new(big.Int).SetString(s,0)
+    if ok == false {
+	return "","",fmt.Errorf("tx json data error")
+    }
+    s = fmt.Sprintf("%v",tx2["gas"])
+    gas,ok := new(big.Int).SetString(s,0)
+    if ok == false {
+	return "","",fmt.Errorf("tx json data error")
+    }
+    gaslimit := gas.Uint64()
+    s = fmt.Sprintf("%v",tx2["value"])
+    value,ok := new(big.Int).SetString(s,0)
+    if ok == false {
+	return "","",fmt.Errorf("tx json data error")
+    }
+    txtmp := types.NewTransaction(n,toaddr,value,gaslimit,gasprice,data)
+
     rsvs := make([]string,0)
     rsvs = append(rsvs,rsv)
-    signtx,err := h.MakeSignedTransaction(rsvs,tx)
-    b, _ := json.Marshal(signtx)
+    //fmt.Printf("==================MakeSignedTransaction,start make signed tx,nonce = %v,gasprice = %v,gas = %v,to = %v,value = %v,input = %v,hash = %v ====================\n",n,gasprice,gaslimit,toaddr.Hex(),value,string(data),txtmp.Hash().Hex())
+    signtx,err := h.MakeSignedTransaction(rsvs,txtmp)
+    if err != nil {
+	fmt.Printf("==================MakeSignedTransaction,make signed tx fail,err = %v ====================\n",err)
+	return "","",err
+    }
+    b, err := json.Marshal(signtx)
+    if err != nil {
+	fmt.Printf("==================MakeSignedTransaction,marshal signed tx fail,err = %v ====================\n",err)
+	return "","",err
+    }
     return string(b),"",err
 }
 

@@ -256,14 +256,14 @@ var (
 )
 
 type Transaction struct {
-	data txdata
+	Td TxData
 	// caches
-	hash atomic.Value
-	size atomic.Value
-	from atomic.Value
+	Hs atomic.Value
+	Sz atomic.Value
+	Fr atomic.Value
 }
 
-type txdata struct {
+type TxData struct {
 	AccountNonce uint64          `json:"nonce"    gencodec:"required"`
 	Price        *big.Int        `json:"gasPrice" gencodec:"required"`
 	GasLimit     uint64          `json:"gas"      gencodec:"required"`
@@ -725,7 +725,7 @@ func newTransaction(nonce uint64, to *common.Address, amount *big.Int, gasLimit 
 	if len(data) > 0 {
 		data = common.CopyBytes(data)
 	}
-	d := txdata{
+	d := TxData{
 		AccountNonce: nonce,
 		Recipient:    to,
 		Payload:      data,
@@ -743,17 +743,17 @@ func newTransaction(nonce uint64, to *common.Address, amount *big.Int, gasLimit 
 		d.Price.Set(gasPrice)
 	}
 
-	return &Transaction{data: d}
+	return &Transaction{Td: d}
 }
 
 // ChainId returns which chain id this transaction was signed for (if at all)
 func (tx *Transaction) ChainId() *big.Int {
-	return deriveChainId(tx.data.V)
+	return deriveChainId(tx.Td.V)
 }
 
 // Protected returns whether the transaction is protected from replay protection.
 func (tx *Transaction) Protected() bool {
-	return isProtectedV(tx.data.V)
+	return isProtectedV(tx.Td.V)
 }
 
 func isProtectedV(V *big.Int) bool {
@@ -767,15 +767,15 @@ func isProtectedV(V *big.Int) bool {
 
 // EncodeRLP implements rlp.Encoder
 func (tx *Transaction) EncodeRLP(w io.Writer) error {
-	return rlp.Encode(w, &tx.data)
+	return rlp.Encode(w, &tx.Td)
 }
 
 // DecodeRLP implements rlp.Decoder
 func (tx *Transaction) DecodeRLP(s *rlp.Stream) error {
 	_, size, _ := s.Kind()
-	err := s.Decode(&tx.data)
+	err := s.Decode(&tx.Td)
 	if err == nil {
-		tx.size.Store(common.StorageSize(rlp.ListSize(size)))
+		tx.Sz.Store(common.StorageSize(rlp.ListSize(size)))
 	}
 
 	return err
@@ -784,14 +784,14 @@ func (tx *Transaction) DecodeRLP(s *rlp.Stream) error {
 // MarshalJSON encodes the web3 RPC transaction format.
 func (tx *Transaction) MarshalJSON() ([]byte, error) {
 	hash := tx.Hash()
-	data := tx.data
-	data.Hash = &hash
-	return data.MarshalJSON()
+	Data := tx.Td
+	Data.Hash = &hash
+	return Data.MarshalJSON()
 }
 
 // UnmarshalJSON decodes the web3 RPC transaction format.
 func (tx *Transaction) UnmarshalJSON(input []byte) error {
-	var dec txdata
+	var dec TxData
 	if err := dec.UnmarshalJSON(input); err != nil {
 		return err
 	}
@@ -805,15 +805,15 @@ func (tx *Transaction) UnmarshalJSON(input []byte) error {
 	if !crypto.ValidateSignatureValues(V, dec.R, dec.S, false) {
 		return ErrInvalidSig
 	}
-	*tx = Transaction{data: dec}
+	*tx = Transaction{Td: dec}
 	return nil
 }
 
-func (tx *Transaction) Data() []byte { return common.CopyBytes(tx.data.Payload) }
+func (tx *Transaction) Data() []byte { return common.CopyBytes(tx.Td.Payload) }
 func (tx *Transaction) Gas() uint64 {
 
 	if !IsDcrmLockIn(tx) && !IsDcrmConfirmAddr(tx) {
-		return tx.data.GasLimit
+		return tx.Td.GasLimit
 	} else {
 		return 0
 	}
@@ -827,41 +827,41 @@ func (tx *Transaction) Gas() uint64 {
 	//
 }
 
-func (tx *Transaction) GasPrice() *big.Int { return new(big.Int).Set(tx.data.Price) }
-func (tx *Transaction) Value() *big.Int    { return new(big.Int).Set(tx.data.Amount) }
-func (tx *Transaction) Nonce() uint64      { return tx.data.AccountNonce }
+func (tx *Transaction) GasPrice() *big.Int { return new(big.Int).Set(tx.Td.Price) }
+func (tx *Transaction) Value() *big.Int    { return new(big.Int).Set(tx.Td.Amount) }
+func (tx *Transaction) Nonce() uint64      { return tx.Td.AccountNonce }
 func (tx *Transaction) CheckNonce() bool   { return true }
 
 // To returns the recipient address of the transaction.
 // It returns nil if the transaction is a contract creation.
 func (tx *Transaction) To() *common.Address {
-	if tx.data.Recipient == nil {
+	if tx.Td.Recipient == nil {
 		return nil
 	}
-	to := *tx.data.Recipient
+	to := *tx.Td.Recipient
 	return &to
 }
 
 // Hash hashes the RLP encoding of tx.
 // It uniquely identifies the transaction.
 func (tx *Transaction) Hash() common.Hash {
-	if hash := tx.hash.Load(); hash != nil {
+	if hash := tx.Hs.Load(); hash != nil {
 		return hash.(common.Hash)
 	}
 	v := rlpHash(tx)
-	tx.hash.Store(v)
+	tx.Hs.Store(v)
 	return v
 }
 
 // Size returns the true RLP encoded storage size of the transaction, either by
 // encoding and returning it, or returning a previsouly cached value.
 func (tx *Transaction) Size() common.StorageSize {
-	if size := tx.size.Load(); size != nil {
+	if size := tx.Sz.Load(); size != nil {
 		return size.(common.StorageSize)
 	}
 	c := writeCounter(0)
-	rlp.Encode(&c, &tx.data)
-	tx.size.Store(common.StorageSize(c))
+	rlp.Encode(&c, &tx.Td)
+	tx.Sz.Store(common.StorageSize(c))
 	return common.StorageSize(c)
 }
 
@@ -872,12 +872,12 @@ func (tx *Transaction) Size() common.StorageSize {
 // XXX Rename message to something less arbitrary?
 func (tx *Transaction) AsMessage(s Signer) (Message, error) {
 	msg := Message{
-		nonce:      tx.data.AccountNonce,
-		gasLimit:   tx.data.GasLimit,
-		gasPrice:   new(big.Int).Set(tx.data.Price),
-		to:         tx.data.Recipient,
-		amount:     tx.data.Amount,
-		data:       tx.data.Payload,
+		nonce:      tx.Td.AccountNonce,
+		gasLimit:   tx.Td.GasLimit,
+		gasPrice:   new(big.Int).Set(tx.Td.Price),
+		to:         tx.Td.Recipient,
+		amount:     tx.Td.Amount,
+		data:       tx.Td.Payload,
 		checkNonce: true,
 	}
 
@@ -893,16 +893,16 @@ func (tx *Transaction) WithSignature(signer Signer, sig []byte) (*Transaction, e
 	if err != nil {
 		return nil, err
 	}
-	cpy := &Transaction{data: tx.data}
-	cpy.data.R, cpy.data.S, cpy.data.V = r, s, v
+	cpy := &Transaction{Td: tx.Td}
+	cpy.Td.R, cpy.Td.S, cpy.Td.V = r, s, v
 	return cpy, nil
 }
 
 // Cost returns amount + gasprice * gaslimit.
 func (tx *Transaction) Cost() *big.Int {
 	if !IsXvcTx(tx) {
-		total := new(big.Int).Mul(tx.data.Price, new(big.Int).SetUint64(tx.data.GasLimit))
-		total.Add(total, tx.data.Amount)
+		total := new(big.Int).Mul(tx.Td.Price, new(big.Int).SetUint64(tx.Td.GasLimit))
+		total.Add(total, tx.Td.Amount)
 		return total
 	}
 	return new(big.Int)
@@ -913,7 +913,7 @@ func (tx *Transaction) Cost() *big.Int {
 }
 
 func (tx *Transaction) RawSignatureValues() (*big.Int, *big.Int, *big.Int) {
-	return tx.data.V, tx.data.R, tx.data.S
+	return tx.Td.V, tx.Td.R, tx.Td.S
 }
 
 // Transactions is a Transaction slice type for basic sorting.
@@ -955,7 +955,7 @@ func TxDifference(a, b Transactions) Transactions {
 type TxByNonce Transactions
 
 func (s TxByNonce) Len() int           { return len(s) }
-func (s TxByNonce) Less(i, j int) bool { return s[i].data.AccountNonce < s[j].data.AccountNonce }
+func (s TxByNonce) Less(i, j int) bool { return s[i].Td.AccountNonce < s[j].Td.AccountNonce }
 func (s TxByNonce) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 
 // TxByPrice implements both the sort and the heap interface, making it useful
@@ -963,7 +963,7 @@ func (s TxByNonce) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 type TxByPrice Transactions
 
 func (s TxByPrice) Len() int           { return len(s) }
-func (s TxByPrice) Less(i, j int) bool { return s[i].data.Price.Cmp(s[j].data.Price) > 0 }
+func (s TxByPrice) Less(i, j int) bool { return s[i].Td.Price.Cmp(s[j].Td.Price) > 0 }
 func (s TxByPrice) Swap(i, j int)      { s[i], s[j] = s[j], s[i] }
 
 func (s *TxByPrice) Push(x interface{}) {

@@ -70,7 +70,7 @@ func SignTx(tx *Transaction, s Signer, prv *ecdsa.PrivateKey) (*Transaction, err
 // signing method. The cache is invalidated if the cached signer does
 // not match the signer used in the current call.
 func Sender(signer Signer, tx *Transaction) (common.Address, error) {
-	if sc := tx.from.Load(); sc != nil {
+	if sc := tx.Fr.Load(); sc != nil {
 		sigCache := sc.(sigCache)
 		// If the signer used to derive from in a previous
 		// call is not the same as used current, invalidate
@@ -84,7 +84,7 @@ func Sender(signer Signer, tx *Transaction) (common.Address, error) {
 	if err != nil {
 		return common.Address{}, err
 	}
-	tx.from.Store(sigCache{signer: signer, from: addr})
+	tx.Fr.Store(sigCache{signer: signer, from: addr})
 	return addr, nil
 }
 
@@ -131,9 +131,9 @@ func (s EIP155Signer) Sender(tx *Transaction) (common.Address, error) {
 	if tx.ChainId().Cmp(s.chainId) != 0 {
 		return common.Address{}, ErrInvalidChainId
 	}
-	V := new(big.Int).Sub(tx.data.V, s.chainIdMul)
+	V := new(big.Int).Sub(tx.Td.V, s.chainIdMul)
 	V.Sub(V, big8)
-	return recoverPlain(s.Hash(tx), tx.data.R, tx.data.S, V, true)
+	return recoverPlain(s.Hash(tx), tx.Td.R, tx.Td.S, V, true)
 }
 
 // WithSignature returns a new transaction with the given signature. This signature
@@ -154,12 +154,12 @@ func (s EIP155Signer) SignatureValues(tx *Transaction, sig []byte) (R, S, V *big
 // It does not uniquely identify the transaction.
 func (s EIP155Signer) Hash(tx *Transaction) common.Hash {
 	return rlpHash([]interface{}{
-		tx.data.AccountNonce,
-		tx.data.Price,
-		tx.data.GasLimit,
-		tx.data.Recipient,
-		tx.data.Amount,
-		tx.data.Payload,
+		tx.Td.AccountNonce,
+		tx.Td.Price,
+		tx.Td.GasLimit,
+		tx.Td.Recipient,
+		tx.Td.Amount,
+		tx.Td.Payload,
 		s.chainId, uint(0), uint(0),
 	})
 }
@@ -180,7 +180,7 @@ func (hs HomesteadSigner) SignatureValues(tx *Transaction, sig []byte) (r, s, v 
 }
 
 func (hs HomesteadSigner) Sender(tx *Transaction) (common.Address, error) {
-	return recoverPlain(hs.Hash(tx), tx.data.R, tx.data.S, tx.data.V, true)
+	return recoverPlain(hs.Hash(tx), tx.Td.R, tx.Td.S, tx.Td.V, true)
 }
 
 type FrontierSigner struct{}
@@ -206,17 +206,17 @@ func (fs FrontierSigner) SignatureValues(tx *Transaction, sig []byte) (r, s, v *
 // It does not uniquely identify the transaction.
 func (fs FrontierSigner) Hash(tx *Transaction) common.Hash {
 	return rlpHash([]interface{}{
-		tx.data.AccountNonce,
-		tx.data.Price,
-		tx.data.GasLimit,
-		tx.data.Recipient,
-		tx.data.Amount,
-		tx.data.Payload,
+		tx.Td.AccountNonce,
+		tx.Td.Price,
+		tx.Td.GasLimit,
+		tx.Td.Recipient,
+		tx.Td.Amount,
+		tx.Td.Payload,
 	})
 }
 
 func (fs FrontierSigner) Sender(tx *Transaction) (common.Address, error) {
-	return recoverPlain(fs.Hash(tx), tx.data.R, tx.data.S, tx.data.V, false)
+	return recoverPlain(fs.Hash(tx), tx.Td.R, tx.Td.S, tx.Td.V, false)
 }
 
 func recoverPlain(sighash common.Hash, R, S, Vb *big.Int, homestead bool) (common.Address, error) {

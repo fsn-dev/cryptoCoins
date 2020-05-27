@@ -155,9 +155,14 @@ func (h *FSNHandler) SignTransaction(hash []string, privateKey interface{}) (rsv
 func (h *FSNHandler) MakeSignedTransaction(rsv []string, transaction interface{}) (signedTransaction interface{}, err error) {
 	client, err := ethclient.Dial(url)
 	if err != nil {
+	    fmt.Printf("==================MakeSignedTransaction,ethclient.Dial fail,err = %v ====================\n",err)
 		return
 	}
-	return makeSignedTransaction(client, transaction.(*ctypes.Transaction), rsv[0])
+	tmp,ok := transaction.(*ctypes.Transaction)
+	if ok == false {
+	    return nil,fmt.Errorf("tx error")
+	}
+	return makeSignedTransaction(client, tmp, rsv[0])
 }
 
 func (h *FSNHandler) SubmitTransaction(signedTransaction interface{}) (txhash string, err error) {
@@ -335,23 +340,29 @@ func makeSignedTransaction(client *ethclient.Client, tx *ctypes.Transaction, rsv
 	//	return nil, err
 	//}
 	chainID := chainConfig.ChainID
-	fmt.Println("=============== makeSignedTransaction,chain id = %v ===============", chainID)
+
+	rsvs := []rune(rsv)
+	if string(rsvs[0:2]) == "0x" {
+	    rsv = string(rsvs[2:])
+	}
 
 	message, err := hex.DecodeString(rsv)
 	if err != nil {
+		fmt.Println("=============== makeSignedTransaction,1111 err = %v ===============\n",err)
 		return nil, err
 	}
 	signer := ctypes.NewEIP155Signer(chainID)
 
 	signedtx, err := tx.WithSignature(signer, message)
 	if err != nil {
+		fmt.Println("=============== makeSignedTransaction,222 err = %v ===============\n",err)
 		return nil, err
 	}
 
 	//////
 	from, err2 := ctypes.Sender(signer, signedtx)
 	if err2 != nil {
-		fmt.Println("===================makeSignedTransaction,err = %v ==================", err2)
+		fmt.Println("===================makeSignedTransaction,3333 err = %v ==================", err2)
 		return nil, err2
 	}
 	fmt.Println("===================makeSignedTransaction,from = %v ==================", from.Hex())
