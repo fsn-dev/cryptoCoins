@@ -148,6 +148,28 @@ func (h *TRXHandler) SignTransaction(hash []string, privateKey interface{}) (rsv
 	return
 }
 
+func (h *TRXHandler) MakeSignedTransactionByJson(rsv []string, txjson string) (signedTransaction interface{}, err error) {
+	var tx Transaction
+	err = json.Unmarshal([]byte(txjson), &tx)
+	if err != nil {
+	    fmt.Printf("==================MakeSignedTransactionByJson,unmarshal txjson,err = %v ====================\n",err)
+	    return nil,err
+	}
+	
+	return h.MakeSignedTransaction(rsv,&tx)
+}
+
+func (h *TRXHandler) SubmitTransactionByJson(txjson string) (txhash string, err error) {
+	var tx Transaction
+	err = json.Unmarshal([]byte(txjson), &tx)
+	if err != nil {
+	    fmt.Printf("==================SubmitTransactionByJson,unmarshal txjson,err = %v ====================\n",err)
+	    return "",err
+	}
+	
+	return h.SubmitTransaction(&tx)
+}
+
 func (h *TRXHandler) MakeSignedTransaction(rsv []string, transaction interface{}) (signedTransaction interface{}, err error) {
 	signedTransaction = transaction
 	signedTransaction.(*Transaction).Signature = rsv[0]

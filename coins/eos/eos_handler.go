@@ -100,6 +100,28 @@ func (h *EOSHandler) SignTransaction(hash []string, privateKey interface{}) (rsv
 	return
 }
 
+func (h *EOSHandler) MakeSignedTransactionByJson(rsv []string, txjson string) (signedTransaction interface{}, err error) {
+	var tx eos.SignedTransaction
+	err = json.Unmarshal([]byte(txjson), &tx)
+	if err != nil {
+	    fmt.Printf("==================MakeSignedTransactionByJson,unmarshal txjson,err = %v ====================\n",err)
+	    return nil,err
+	}
+	
+	return h.MakeSignedTransaction(rsv,&tx)
+}
+
+func (h *EOSHandler) SubmitTransactionByJson(txjson string) (txhash string, err error) {
+	var tx eos.SignedTransaction
+	err = json.Unmarshal([]byte(txjson), &tx)
+	if err != nil {
+	    fmt.Printf("==================SubmitTransactionByJson,unmarshal txjson,err = %v ====================\n",err)
+	    return "",err
+	}
+	
+	return h.SubmitTransaction(&tx)
+}
+
 func (h *EOSHandler) MakeSignedTransaction(rsv []string, transaction interface{}) (signedTransaction interface{}, err error) {
 	signature, err := RSVToSignature(rsv[0])
 	if err != nil {

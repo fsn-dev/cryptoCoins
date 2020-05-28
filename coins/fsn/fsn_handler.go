@@ -152,6 +152,28 @@ func (h *FSNHandler) SignTransaction(hash []string, privateKey interface{}) (rsv
 	return
 }
 
+func (h *FSNHandler) MakeSignedTransactionByJson(rsv []string, txjson string) (signedTransaction interface{}, err error) {
+	var tx ctypes.Transaction
+	err = json.Unmarshal([]byte(txjson), &tx)
+	if err != nil {
+	    fmt.Printf("==================MakeSignedTransactionByJson,unmarshal txjson,err = %v ====================\n",err)
+	    return nil,err
+	}
+	
+	return h.MakeSignedTransaction(rsv,&tx)
+}
+
+func (h *FSNHandler) SubmitTransactionByJson(txjson string) (txhash string, err error) {
+	var tx ctypes.Transaction
+	err = json.Unmarshal([]byte(txjson), &tx)
+	if err != nil {
+	    fmt.Printf("==================SubmitTransactionByJson,unmarshal txjson,err = %v ====================\n",err)
+	    return "",err
+	}
+	
+	return h.SubmitTransaction(&tx)
+}
+
 func (h *FSNHandler) MakeSignedTransaction(rsv []string, transaction interface{}) (signedTransaction interface{}, err error) {
 	client, err := ethclient.Dial(url)
 	if err != nil {

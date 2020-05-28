@@ -171,6 +171,28 @@ func (h *AtomHandler) SignTransaction(hash []string, privateKey interface{}) (rs
 	return
 }
 
+func (h *AtomHandler) MakeSignedTransactionByJson(rsv []string, txjson string) (signedTransaction interface{}, err error) {
+	var tx AtomTx
+	err = json.Unmarshal([]byte(txjson), &tx)
+	if err != nil {
+	    fmt.Printf("==================MakeSignedTransactionByJson,unmarshal txjson,err = %v ====================\n",err)
+	    return nil,err
+	}
+	
+	return h.MakeSignedTransaction(rsv,&tx)
+}
+
+func (h *AtomHandler) SubmitTransactionByJson(txjson string) (txhash string, err error) {
+	var tx AtomTx
+	err = json.Unmarshal([]byte(txjson), &tx)
+	if err != nil {
+	    fmt.Printf("==================SubmitTransactionByJson,unmarshal txjson,err = %v ====================\n",err)
+	    return "",err
+	}
+	
+	return h.SubmitTransaction(&tx)
+}
+
 func (h *AtomHandler) MakeSignedTransaction(rsv []string, transaction interface{}) (signedTransaction interface{}, err error) {
 	fmt.Printf("\n======== atom MakeSignedTransaction ========\n")
 	b, _ := hex.DecodeString(rsv[0])

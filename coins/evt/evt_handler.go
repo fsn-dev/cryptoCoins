@@ -196,6 +196,28 @@ func (h *EvtHandler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddr
 	return
 }
 
+func (h *EvtHandler) MakeSignedTransactionByJson(rsv []string, txjson string) (signedTransaction interface{}, err error) {
+	var tx evttypes.SignedTRXJson
+	err = json.Unmarshal([]byte(txjson), &tx)
+	if err != nil {
+	    fmt.Printf("==================MakeSignedTransactionByJson,unmarshal txjson,err = %v ====================\n",err)
+	    return nil,err
+	}
+	
+	return h.MakeSignedTransaction(rsv,&tx)
+}
+
+func (h *EvtHandler) SubmitTransactionByJson(txjson string) (txhash string, err error) {
+	var tx evttypes.SignedTRXJson
+	err = json.Unmarshal([]byte(txjson), &tx)
+	if err != nil {
+	    fmt.Printf("==================SubmitTransactionByJson,unmarshal txjson,err = %v ====================\n",err)
+	    return "",err
+	}
+	
+	return h.SubmitTransaction(&tx)
+}
+
 func (h *EvtHandler) MakeSignedTransaction(rsv []string, transaction interface{}) (signedTransaction interface{}, err error) {
 	fmt.Println("======== EVT Make Signed Transaction ========")
 	sig, err := eos.RSVToSignature(rsv[0])

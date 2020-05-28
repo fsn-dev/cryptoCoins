@@ -123,8 +123,14 @@ type CryptocoinHandler interface {
 	// 构造签名交易
 	MakeSignedTransaction(rsv []string, transaction interface{}) (signedTransaction interface{}, err error)
 
+	// 根据未签名交易的json数据构造签名交易
+	MakeSignedTransactionByJson(rsv []string, txjson string) (signedTransaction interface{}, err error)
+
 	// 提交交易
 	SubmitTransaction(signedTransaction interface{}) (txhash string, err error)
+
+	// 根据已签名交易的json数据得到签名交易并提交该交易
+	SubmitTransactionByJson(txjson string) (txhash string, err error)
 
 	// 根据交易hash查交易信息
 	// fromAddress 交易发起方地址

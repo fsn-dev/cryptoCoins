@@ -19,6 +19,7 @@ package bnb
 import (
 	"encoding/hex"
 	"fmt"
+	"encoding/json"
 	"math/big"
 	"runtime/debug"
 	"strings"
@@ -188,6 +189,28 @@ func (h *BNBHandler) SignTransaction(hexTx []byte, privateKey interface{}) (rsv 
 	}
 	rsv = append(rsv, hex.EncodeToString(rs)+"00")
 	return
+}
+
+func (h *BNBHandler) MakeSignedTransactionByJson(rsv []string, txjson string) (signedTransaction interface{}, err error) {
+	var tx BNBTx 
+	err = json.Unmarshal([]byte(txjson), &tx)
+	if err != nil {
+	    fmt.Printf("==================MakeSignedTransactionByJson,unmarshal txjson,err = %v ====================\n",err)
+	    return nil,err
+	}
+	
+	return h.MakeSignedTransaction(rsv,&tx)
+}
+
+func (h *BNBHandler) SubmitTransactionByJson(txjson string) (txhash string, err error) {
+	var tx BNBTx
+	err = json.Unmarshal([]byte(txjson), &tx)
+	if err != nil {
+	    fmt.Printf("==================SubmitTransactionByJson,unmarshal txjson,err = %v ====================\n",err)
+	    return "",err
+	}
+	
+	return h.SubmitTransaction(&tx)
 }
 
 func (h *BNBHandler) MakeSignedTransaction(rsv []string, transaction interface{}) (signedTransaction interface{}, err error) {

@@ -30,7 +30,7 @@ import (
 
 	"encoding/json"
 
-	"github.com/fsn-dev/cryptoCoins/tools/crypto"
+	//"github.com/fsn-dev/cryptoCoins/tools/crypto"
 	"github.com/fsn-dev/cryptoCoins/tools/crypto/sha3"
 	"github.com/fsn-dev/cryptoCoins/tools/common"
 	"github.com/fsn-dev/cryptoCoins/tools/common/hexutil"
@@ -795,7 +795,7 @@ func (tx *Transaction) UnmarshalJSON(input []byte) error {
 	if err := dec.UnmarshalJSON(input); err != nil {
 		return err
 	}
-	var V byte
+	/*var V byte
 	if isProtectedV(dec.V) {
 		chainID := deriveChainId(dec.V).Uint64()
 		V = byte(dec.V.Uint64() - 35 - 2*chainID)
@@ -805,6 +805,7 @@ func (tx *Transaction) UnmarshalJSON(input []byte) error {
 	if !crypto.ValidateSignatureValues(V, dec.R, dec.S, false) {
 		return ErrInvalidSig
 	}
+	*/
 	*tx = Transaction{Td: dec}
 	return nil
 }

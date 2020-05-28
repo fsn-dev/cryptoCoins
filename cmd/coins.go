@@ -28,7 +28,7 @@ import (
 	rpc "github.com/fsn-dev/cryptoCoins/tools/rpcservice"
 	"github.com/fsn-dev/cryptoCoins/coins"
 	"gopkg.in/urfave/cli.v1"
-	"github.com/fsn-dev/cryptoCoins/tools/common"
+	//"github.com/fsn-dev/cryptoCoins/tools/common"
 	"encoding/json"
 	"github.com/fsn-dev/cryptoCoins/coins/types"
 	cryptocoinsconfig "github.com/fsn-dev/cryptoCoins/coins/config"
@@ -268,7 +268,7 @@ func (this *Service) GetTransactionInfo(txhash string,cointype string) map[strin
 }
 
 type UnsignTx struct {
-    Tx string
+    Tx interface{} 
     TxHash []string
 }
 
@@ -284,8 +284,8 @@ func BuildUnsignedTransaction(fromaddr string,pubkey string,toaddr string,amount
     }
 
     tx,txhash,err := h.BuildUnsignedTransaction(fromaddr,pubkey,toaddr,value,"",memo)
-    b, _ := json.Marshal(tx)
-    ut := &UnsignTx{Tx:string(b),TxHash:txhash}
+    //b, _ := json.Marshal(tx)
+    ut := &UnsignTx{Tx:tx,TxHash:txhash}
     return ut,"",err
 }
 
@@ -328,12 +328,13 @@ func MakeSignedTransaction(txjson string,rsv string,cointype string) (string,str
 	return "","unsupported cointype",fmt.Errorf("unsupported cointype")
     }
 
-    var tx interface{}
+    /*var tx types.Transaction
     err := json.Unmarshal([]byte(txjson), &tx)
     if err != nil {
 	fmt.Printf("==================MakeSignedTransaction,unmarshal txjson,err = %v ====================\n",err)
 	return "","",err
     }
+    fmt.Printf("==================MakeSignedTransaction,end unmarshal txjson, tx = %v ====================\n",tx)
     tx2,ok := tx.(map[string]interface{})
     if ok == false {
 	return "","",fmt.Errorf("tx json data error")
@@ -372,12 +373,12 @@ func MakeSignedTransaction(txjson string,rsv string,cointype string) (string,str
     if ok == false {
 	return "","",fmt.Errorf("tx json data error")
     }
-    txtmp := types.NewTransaction(n,toaddr,value,gaslimit,gasprice,data)
+    txtmp := types.NewTransaction(n,toaddr,value,gaslimit,gasprice,data)*/
 
     rsvs := make([]string,0)
     rsvs = append(rsvs,rsv)
     //fmt.Printf("==================MakeSignedTransaction,start make signed tx,nonce = %v,gasprice = %v,gas = %v,to = %v,value = %v,input = %v,hash = %v ====================\n",n,gasprice,gaslimit,toaddr.Hex(),value,string(data),txtmp.Hash().Hex())
-    signtx,err := h.MakeSignedTransaction(rsvs,txtmp)
+    signtx,err := h.MakeSignedTransactionByJson(rsvs,txjson)
     if err != nil {
 	fmt.Printf("==================MakeSignedTransaction,make signed tx fail,err = %v ====================\n",err)
 	return "","",err
@@ -435,10 +436,54 @@ func SubmitTransaction(signtx string,cointype string) (string,string,error) {
 	return "","unsupported cointype",fmt.Errorf("unsupported cointype")
     }
 
-    var tx interface{}
-    json.Unmarshal([]byte(signtx), &tx)
+    /*var tx interface{}
+    err := json.Unmarshal([]byte(signtx), &tx)
+    if err != nil {
+	fmt.Printf("==================SubmitTransaction,unmarshal txjson,err = %v ====================\n",err)
+	return "","",err
+    }
+    tx2,ok := tx.(map[string]interface{})
+    if ok == false {
+	return "","",fmt.Errorf("tx json data error")
+    }
+    s := fmt.Sprintf("%v",tx2["to"])
+    to,ok := new(big.Int).SetString(s,0)
+    if ok == false {
+	return "","",fmt.Errorf("tx json data error")
+    }
+    toaddr := common.BigToAddress(to)
+    s = fmt.Sprintf("%v",tx2["input"])
+    input,ok := new(big.Int).SetString(s,0)
+    if ok == false {
+	return "","",fmt.Errorf("tx json data error")
+    }
+    data := input.Bytes()
+    s = fmt.Sprintf("%v",tx2["nonce"])
+    nonce,ok := new(big.Int).SetString(s,0)
+    if ok == false {
+	return "","",fmt.Errorf("tx json data error")
+    }
+    n := nonce.Uint64()
+    s = fmt.Sprintf("%v",tx2["gasPrice"])
+    gasprice,ok := new(big.Int).SetString(s,0)
+    if ok == false {
+	return "","",fmt.Errorf("tx json data error")
+    }
+    s = fmt.Sprintf("%v",tx2["gas"])
+    gas,ok := new(big.Int).SetString(s,0)
+    if ok == false {
+	return "","",fmt.Errorf("tx json data error")
+    }
+    gaslimit := gas.Uint64()
+    s = fmt.Sprintf("%v",tx2["value"])
+    value,ok := new(big.Int).SetString(s,0)
+    if ok == false {
+	return "","",fmt.Errorf("tx json data error")
+    }
+    txtmp := types.NewTransaction(n,toaddr,value,gaslimit,gasprice,data)
+*/
 
-    txhash,err := h.SubmitTransaction(tx)
+    txhash,err := h.SubmitTransactionByJson(signtx)
     return txhash,"",err
 }
 

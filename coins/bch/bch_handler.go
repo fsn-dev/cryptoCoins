@@ -109,6 +109,14 @@ func (h *BCHHandler) SignTransaction(hash []string, wif interface{}) (rsv []stri
 	return h.btcHandler.SignTransaction(hash, wif)
 }
 
+func (h *BCHHandler) MakeSignedTransactionByJson(rsv []string, txjson string) (signedTransaction interface{}, err error) {
+	return h.btcHandler.MakeSignedTransaction(rsv,txjson)
+}
+
+func (h *BCHHandler) SubmitTransactionByJson(txjson string) (txhash string, err error) {
+	return h.btcHandler.SubmitTransaction(txjson)
+}
+
 // NOT completed, may or not work
 func (h *BCHHandler) MakeSignedTransaction(rsv []string, transaction interface{}) (signedTransaction interface{}, err error) {
 	return h.btcHandler.MakeSignedTransaction(rsv, transaction)

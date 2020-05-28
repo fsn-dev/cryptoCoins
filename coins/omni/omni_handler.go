@@ -315,6 +315,14 @@ func (h *OmniHandler) SignTransaction(hash []string, wif interface{}) (rsv []str
 	return h.btcHandler.SignTransaction(hash, wif)
 }
 
+func (h *OmniHandler) MakeSignedTransactionByJson(rsv []string, txjson string) (signedTransaction interface{}, err error) {
+	return h.btcHandler.MakeSignedTransactionByJson(rsv,txjson)
+}
+
+func (h *OmniHandler) SubmitTransactionByJson(txjson string) (txhash string, err error) {
+	return h.btcHandler.SubmitTransactionByJson(txjson)
+}
+
 // NOT completed, may or not work
 func (h *OmniHandler) MakeSignedTransaction(rsv []string, transaction interface{}) (signedTransaction interface{}, err error) {
 	return h.btcHandler.MakeSignedTransaction(rsv, transaction)
