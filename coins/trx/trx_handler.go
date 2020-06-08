@@ -77,7 +77,7 @@ func (h *TRXHandler) PublicKeyToAddress(pubKeyHex string) (address string, err e
 	return
 }
 
-func (h *TRXHandler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddress string, amount *big.Int, jsonstring string,memo string) (transaction interface{}, digests []string, err error) {
+func (h *TRXHandler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddress string, amount *big.Int, jsonstring string, memo string) (transaction interface{}, digests []string, err error) {
 	defer func() {
 		if e := recover(); e != nil {
 			err = fmt.Errorf("Runtime error: %v\n%v", e, string(debug.Stack()))
@@ -152,21 +152,21 @@ func (h *TRXHandler) MakeSignedTransactionByJson(rsv []string, txjson string) (s
 	var tx Transaction
 	err = json.Unmarshal([]byte(txjson), &tx)
 	if err != nil {
-	    fmt.Printf("==================MakeSignedTransactionByJson,unmarshal txjson,err = %v ====================\n",err)
-	    return nil,err
+		fmt.Printf("==================MakeSignedTransactionByJson,unmarshal txjson,err = %v ====================\n", err)
+		return nil, err
 	}
-	
-	return h.MakeSignedTransaction(rsv,&tx)
+
+	return h.MakeSignedTransaction(rsv, &tx)
 }
 
 func (h *TRXHandler) SubmitTransactionByJson(txjson string) (txhash string, err error) {
 	var tx Transaction
 	err = json.Unmarshal([]byte(txjson), &tx)
 	if err != nil {
-	    fmt.Printf("==================SubmitTransactionByJson,unmarshal txjson,err = %v ====================\n",err)
-	    return "",err
+		fmt.Printf("==================SubmitTransactionByJson,unmarshal txjson,err = %v ====================\n", err)
+		return "", err
 	}
-	
+
 	return h.SubmitTransaction(&tx)
 }
 
@@ -193,7 +193,7 @@ func (h *TRXHandler) SubmitTransaction(signedTransaction interface{}) (txhash st
 
 //func (h *TRXHandler) GetTransactionInfo(txhash string) (fromAddress string, txOutputs []types.TxOutput, jsonstring string, confirmed bool, fee types.Value, err error) {
 func (h *TRXHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo, error) {
-    var err error
+	var err error
 	defer func() {
 		if e := recover(); e != nil {
 			err = fmt.Errorf("Runtime error: %v\n%v", e, string(debug.Stack()))
@@ -203,7 +203,7 @@ func (h *TRXHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo, 
 
 	txinfo := &types.TransactionInfo{}
 	var fee types.Value
-	txOutputs := make([]types.TxOutput,0)
+	txOutputs := make([]types.TxOutput, 0)
 	fee = h.GetDefaultFee()
 	confirmed := false
 	data, err := json.Marshal(struct {
@@ -218,7 +218,7 @@ func (h *TRXHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo, 
 
 	if len(tx.Raw_data.Contract) == 0 {
 		err = fmt.Errorf("Transaction not found")
-		return nil,err
+		return nil, err
 	}
 
 	tf := tx.Raw_data.Contract[0].(map[string]interface{})["parameter"].(map[string]interface{})["value"].(map[string]interface{})
@@ -240,7 +240,7 @@ func (h *TRXHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo, 
 	err1 := json.Unmarshal([]byte(ret2), &txinfo2)
 	if err1 != nil {
 		err = fmt.Errorf("decode transaction info error: " + err1.Error())
-		return nil,err
+		return nil, err
 	}
 	//fmt.Printf("\n\n\n\n!!!!!!!! TRX txinfo:\n%+v\n\n\n\n\n\n", txinfo2)
 	if &(txinfo2.Receipt) != nil && txinfo2.BlockTimeStamp != 0 && txinfo2.BlockTimeStamp <= tx.Raw_data.Expiration && txinfo2.BlockTimeStamp >= tx.Raw_data.Timestamp {
@@ -253,7 +253,11 @@ func (h *TRXHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo, 
 	txinfo.Confirmed = confirmed
 	txinfo.TxOutputs = txOutputs
 	txinfo.Fee = fee
-	return txinfo,err
+	return txinfo, err
+}
+
+func (h *TRXHandler) FiltTransaction(blocknumber uint64, filter types.Filter) (txhashes []string, err error) {
+	return nil, nil
 }
 
 func (h *TRXHandler) GetAddressBalance(address string, jsonstring string) (balance types.Balance, err error) {

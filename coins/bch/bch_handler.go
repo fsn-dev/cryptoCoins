@@ -99,8 +99,8 @@ func (h *BCHHandler) PublicKeyToAddress(pubKeyHex string) (address string, err e
 }
 
 // NOT completed, may or not work
-func (h *BCHHandler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddress string, amount *big.Int, jsonstring string,memo string) (transaction interface{}, digests []string, err error) {
-	transaction, digests, err = h.btcHandler.BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddress, amount, jsonstring,memo)
+func (h *BCHHandler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddress string, amount *big.Int, jsonstring string, memo string) (transaction interface{}, digests []string, err error) {
+	transaction, digests, err = h.btcHandler.BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddress, amount, jsonstring, memo)
 	return
 }
 
@@ -110,7 +110,7 @@ func (h *BCHHandler) SignTransaction(hash []string, wif interface{}) (rsv []stri
 }
 
 func (h *BCHHandler) MakeSignedTransactionByJson(rsv []string, txjson string) (signedTransaction interface{}, err error) {
-	return h.btcHandler.MakeSignedTransaction(rsv,txjson)
+	return h.btcHandler.MakeSignedTransaction(rsv, txjson)
 }
 
 func (h *BCHHandler) SubmitTransactionByJson(txjson string) (txhash string, err error) {
@@ -129,23 +129,27 @@ func (h *BCHHandler) SubmitTransaction(signedTransaction interface{}) (ret strin
 
 //func (h *BCHHandler) GetTransactionInfo(txhash string) (fromAddress string, txOutputs []types.TxOutput, jsonstring string, confirmed bool, fee types.Value, err error) {
 func (h *BCHHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo, error) {
-    var err error
+	var err error
 	//fromAddress, txOutputs, jsonstring, confirmed, fee, err = h.btcHandler.GetTransactionInfo(txhash)
 	txinfo, err := h.btcHandler.GetTransactionInfo(txhash)
 	if txinfo == nil {
-	    return nil,err
+		return nil, err
 	}
 
-	outputs := make([]types.TxOutput,0)
+	outputs := make([]types.TxOutput, 0)
 	txinfo.Fee.Cointype = "BCH"
 	txinfo.FromAddress = CovertToCashAddress(txinfo.FromAddress)
 	for _, txoutput := range txinfo.TxOutputs {
 		txoutput.ToAddress = CovertToCashAddress(txoutput.ToAddress)
-		outputs = append(outputs,txoutput)
+		outputs = append(outputs, txoutput)
 	}
 
 	txinfo.TxOutputs = outputs
-	return txinfo,err
+	return txinfo, err
+}
+
+func (h *BCHHandler) FiltTransaction(blocknumber uint64, filter types.Filter) (txhashes []string, err error) {
+	return nil, nil
 }
 
 func CovertToCashAddress(btcaddrAddress string) (cashAddress string) {

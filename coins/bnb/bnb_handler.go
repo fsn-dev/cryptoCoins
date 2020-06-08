@@ -18,8 +18,8 @@ package bnb
 
 import (
 	"encoding/hex"
-	"fmt"
 	"encoding/json"
+	"fmt"
 	"math/big"
 	"runtime/debug"
 	"strings"
@@ -111,14 +111,14 @@ func (h *BNBHandler) PublicKeyToAddress(pubKeyHex string) (address string, err e
 	return
 }
 
-func (h *BNBHandler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddress string, amount *big.Int, jsonstring string,memo string) (transaction interface{}, digests []string, err error) {
+func (h *BNBHandler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddress string, amount *big.Int, jsonstring string, memo string) (transaction interface{}, digests []string, err error) {
 	defer func() {
 		if e := recover(); e != nil {
 			err = fmt.Errorf("BNB_BuildUnsignedTransaction Runtime error: %v\n%v", e, string(debug.Stack()))
 			return
 		}
 	}()
-	transaction, hexMsg, err := h.BNB_buildSendTx(fromAddress, fromPublicKey, toAddress, amount,memo)
+	transaction, hexMsg, err := h.BNB_buildSendTx(fromAddress, fromPublicKey, toAddress, amount, memo)
 	if err != nil {
 		return
 	}
@@ -127,7 +127,7 @@ func (h *BNBHandler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddr
 	return
 }
 
-func (h *BNBHandler) BNB_buildSendTx(fromAddress, fromPublicKey, toAddress string, amount *big.Int,memo string) (transaction BNBTx, hexMsg []byte, err error) {
+func (h *BNBHandler) BNB_buildSendTx(fromAddress, fromPublicKey, toAddress string, amount *big.Int, memo string) (transaction BNBTx, hexMsg []byte, err error) {
 	defer func() {
 		if e := recover(); e != nil {
 			err = fmt.Errorf("BNB_BuildSendTx Runtime error: %v\n%v", e, string(debug.Stack()))
@@ -165,8 +165,8 @@ func (h *BNBHandler) BNB_buildSendTx(fromAddress, fromPublicKey, toAddress strin
 		Sequence:      acc.Sequence,
 		Msgs:          []msg.Msg{sendMsg},
 		//Memo:          "this is a Dcrm lockout transaction (^_^)",
-		Memo:          memo,
-		Source:        tx.Source,
+		Memo:   memo,
+		Source: tx.Source,
 	}
 
 	transaction = BNBTx{
@@ -192,24 +192,24 @@ func (h *BNBHandler) SignTransaction(hexTx []byte, privateKey interface{}) (rsv 
 }
 
 func (h *BNBHandler) MakeSignedTransactionByJson(rsv []string, txjson string) (signedTransaction interface{}, err error) {
-	var tx BNBTx 
+	var tx BNBTx
 	err = json.Unmarshal([]byte(txjson), &tx)
 	if err != nil {
-	    fmt.Printf("==================MakeSignedTransactionByJson,unmarshal txjson,err = %v ====================\n",err)
-	    return nil,err
+		fmt.Printf("==================MakeSignedTransactionByJson,unmarshal txjson,err = %v ====================\n", err)
+		return nil, err
 	}
-	
-	return h.MakeSignedTransaction(rsv,&tx)
+
+	return h.MakeSignedTransaction(rsv, &tx)
 }
 
 func (h *BNBHandler) SubmitTransactionByJson(txjson string) (txhash string, err error) {
 	var tx BNBTx
 	err = json.Unmarshal([]byte(txjson), &tx)
 	if err != nil {
-	    fmt.Printf("==================SubmitTransactionByJson,unmarshal txjson,err = %v ====================\n",err)
-	    return "",err
+		fmt.Printf("==================SubmitTransactionByJson,unmarshal txjson,err = %v ====================\n", err)
+		return "", err
 	}
-	
+
 	return h.SubmitTransaction(&tx)
 }
 
@@ -287,7 +287,7 @@ func (h *BNBHandler) SubmitTransaction(signedTransaction interface{}) (txhash st
 
 //func (h *BNBHandler) GetTransactionInfo(txhash string) (fromAddress string, txOutputs []types.TxOutput, jsonstring string, confirmed bool, fee types.Value, err error) {
 func (h *BNBHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo, error) {
-    var err error
+	var err error
 	defer func() {
 		if e := recover(); e != nil {
 			err = fmt.Errorf("BNB_GetTransactionInfo Runtime error: %v\n%v", e, string(debug.Stack()))
@@ -296,12 +296,12 @@ func (h *BNBHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo, 
 	}()
 
 	txinfo := &types.TransactionInfo{}
-	txOutputs := make([]types.TxOutput,0)
+	txOutputs := make([]types.TxOutput, 0)
 	confirmed := false
 	c := basic.NewClient("testnet-dex.binance.org:443")
 	resp, err := c.GetTx(txhash)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 	// TODO
 	confirmed = true
@@ -310,13 +310,13 @@ func (h *BNBHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo, 
 	fee.Val = big.NewInt(37500)
 	b, err := hex.DecodeString(resp.Data[3 : len(resp.Data)-1])
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 	codec := bnbtypes.NewCodec()
 	var parsedTx tx.StdTx
 	err = codec.UnmarshalBinaryLengthPrefixed(b, &parsedTx)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 	msgs := parsedTx.Msgs
 	for _, m := range msgs {
@@ -341,7 +341,11 @@ func (h *BNBHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo, 
 	txinfo.Fee = fee
 	txinfo.Confirmed = confirmed
 	txinfo.TxOutputs = txOutputs
-	return txinfo,err
+	return txinfo, err
+}
+
+func (h *BNBHandler) FiltTransaction(blocknumber uint64, filter types.Filter) (txhashes []string, err error) {
+	return nil, nil
 }
 
 func (h *BNBHandler) GetAddressBalance(address string, jsonstring string) (balance types.Balance, err error) {

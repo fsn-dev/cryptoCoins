@@ -28,9 +28,9 @@ import (
 	"math/big"
 	"os"
 
-	"github.com/fsn-dev/cryptoCoins/tools/crypto/sha3"
 	"github.com/fsn-dev/cryptoCoins/tools/common"
 	"github.com/fsn-dev/cryptoCoins/tools/common/math"
+	"github.com/fsn-dev/cryptoCoins/tools/crypto/sha3"
 	"github.com/fsn-dev/cryptoCoins/tools/rlp"
 )
 

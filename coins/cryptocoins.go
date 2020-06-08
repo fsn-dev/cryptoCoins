@@ -80,8 +80,9 @@ func Init() {
 // only main net coins
 //var Cointypes []string = []string{"ALL","BTC","ETH","XRP","EOS","USDT","ATOM","BCH","TRX","BNB","EVT1","ERC20BNB","ERC20GUSD","ERC20MKR","ERC20HT","ERC20RMBT","EVT1001","BEP2GZX_754"}
 //var Cointypes []string = []string{"ALL","BTC","ETH","ATOM","BCH","TRX","BNB","ERC20BNB","ERC20GUSD","ERC20MKR","ERC20HT","ERC20RMBT","BEP2GZX_754"}  //tmp delete EOS XRP EVT1 EVT1001 USDT
-//var Cointypes []string = []string{"ALL", "FSN", "ETH", "BTC", "ATOM", "BCH", "BNB", "EOS", "EVT1", "ERC20GUSD", "ERC20MKR", "ERC20HT", "ERC20BNB", "ERC20BNT", "ERC20RMBT", "TRX", "XRP", "ERC20USDT"} 
-var Cointypes []string = []string{"ALL", "FSN", "ETH", "BTC", "ATOM", "BCH", "BNB", "ERC20GUSD", "ERC20MKR", "ERC20HT", "ERC20BNB", "ERC20BNT", "ERC20RMBT", "TRX", "XRP", "ERC20USDT"} 
+//var Cointypes []string = []string{"ALL", "FSN", "ETH", "BTC", "ATOM", "BCH", "BNB", "EOS", "EVT1", "ERC20GUSD", "ERC20MKR", "ERC20HT", "ERC20BNB", "ERC20BNT", "ERC20RMBT", "TRX", "XRP", "ERC20USDT"}
+var Cointypes []string = []string{"ALL", "FSN", "ETH", "BTC", "ATOM", "BCH", "BNB", "ERC20GUSD", "ERC20MKR", "ERC20HT", "ERC20BNB", "ERC20BNT", "ERC20RMBT", "TRX", "XRP", "ERC20USDT"}
+
 //BEP2--->BEP2GZX_754
 
 func IsCoinSupported(cointype string) bool {
@@ -116,7 +117,7 @@ type CryptocoinHandler interface {
 	PublicKeyToAddress(pubKeyHex string) (address string, err error)
 
 	// 构造未签名交易
-	BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddress string, amount *big.Int, jsonstring string,memo string) (transaction interface{}, digests []string, err error)
+	BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddress string, amount *big.Int, jsonstring string, memo string) (transaction interface{}, digests []string, err error)
 
 	// 签名函数 txhash 输出 rsv 测试用
 	//SignTransaction(hash []string, privateKey interface{}) (rsv []string, err error)
@@ -138,6 +139,9 @@ type CryptocoinHandler interface {
 	// txOutputs 交易输出切片, txOutputs[i].ToAddress 第i条交易接收方地址, txOutputs[i].Amount 第i条交易转账金额
 	//GetTransactionInfo(txhash string) (fromAddress string, txOutputs []types.TxOutput, jsonstring string, confirmed bool, fee types.Value, err error)
 	GetTransactionInfo(txhash string) (txinfo *types.TransactionInfo, err error)
+
+	// 从区块中过滤特定交易
+	FiltTransaction(blocknumber uint64, filter types.Filter) (txhashes []string, err error)
 
 	// 账户查账户余额
 	GetAddressBalance(address string, jsonstring string) (balance types.Balance, err error)

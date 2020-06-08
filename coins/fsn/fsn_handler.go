@@ -31,8 +31,8 @@ import (
 	"github.com/fsn-dev/cryptoCoins/coins/eth/ethclient"
 	"github.com/fsn-dev/cryptoCoins/coins/eth/sha3"
 	ctypes "github.com/fsn-dev/cryptoCoins/coins/types"
-	ethcrypto "github.com/fsn-dev/cryptoCoins/tools/crypto"
 	"github.com/fsn-dev/cryptoCoins/tools/common"
+	ethcrypto "github.com/fsn-dev/cryptoCoins/tools/crypto"
 	"github.com/fsn-dev/cryptoCoins/tools/params"
 )
 
@@ -91,7 +91,7 @@ func (h *FSNHandler) PublicKeyToAddress(pubKeyHex string) (address string, err e
 }
 
 // jsonstring '{"gasPrice":8000000000,"gasLimit":50000}'
-func (h *FSNHandler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddress string, amount *big.Int, jsonstring string,memo string) (transaction interface{}, digests []string, err error) {
+func (h *FSNHandler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddress string, amount *big.Int, jsonstring string, memo string) (transaction interface{}, digests []string, err error) {
 	defer func() {
 		if e := recover(); e != nil {
 			err = fmt.Errorf("Runtime error: %v\n%v", e, string(debug.Stack()))
@@ -117,7 +117,7 @@ func (h *FSNHandler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddr
 			gasLimit = uint64(userGasLimit.(float64))
 		}
 	}
-	transaction, hash, err := fsn_newUnsignedTransaction(client, fromAddress, toAddress, amount, gasPrice, gasLimit,memo)
+	transaction, hash, err := fsn_newUnsignedTransaction(client, fromAddress, toAddress, amount, gasPrice, gasLimit, memo)
 	if transaction == nil || hash == nil || err != nil {
 		fmt.Println("================fsn_newUnsignedTransaction,new unsigned tx fail================")
 		return
@@ -156,33 +156,33 @@ func (h *FSNHandler) MakeSignedTransactionByJson(rsv []string, txjson string) (s
 	var tx ctypes.Transaction
 	err = json.Unmarshal([]byte(txjson), &tx)
 	if err != nil {
-	    fmt.Printf("==================MakeSignedTransactionByJson,unmarshal txjson,err = %v ====================\n",err)
-	    return nil,err
+		fmt.Printf("==================MakeSignedTransactionByJson,unmarshal txjson,err = %v ====================\n", err)
+		return nil, err
 	}
-	
-	return h.MakeSignedTransaction(rsv,&tx)
+
+	return h.MakeSignedTransaction(rsv, &tx)
 }
 
 func (h *FSNHandler) SubmitTransactionByJson(txjson string) (txhash string, err error) {
 	var tx ctypes.Transaction
 	err = json.Unmarshal([]byte(txjson), &tx)
 	if err != nil {
-	    fmt.Printf("==================SubmitTransactionByJson,unmarshal txjson,err = %v ====================\n",err)
-	    return "",err
+		fmt.Printf("==================SubmitTransactionByJson,unmarshal txjson,err = %v ====================\n", err)
+		return "", err
 	}
-	
+
 	return h.SubmitTransaction(&tx)
 }
 
 func (h *FSNHandler) MakeSignedTransaction(rsv []string, transaction interface{}) (signedTransaction interface{}, err error) {
 	client, err := ethclient.Dial(url)
 	if err != nil {
-	    fmt.Printf("==================MakeSignedTransaction,ethclient.Dial fail,err = %v ====================\n",err)
+		fmt.Printf("==================MakeSignedTransaction,ethclient.Dial fail,err = %v ====================\n", err)
 		return
 	}
-	tmp,ok := transaction.(*ctypes.Transaction)
+	tmp, ok := transaction.(*ctypes.Transaction)
 	if ok == false {
-	    return nil,fmt.Errorf("tx error")
+		return nil, fmt.Errorf("tx error")
 	}
 	return makeSignedTransaction(client, tmp, rsv[0])
 }
@@ -197,13 +197,13 @@ func (h *FSNHandler) SubmitTransaction(signedTransaction interface{}) (txhash st
 
 //func (h *FSNHandler) GetTransactionInfo(txhash string) (fromAddress string, txOutputs []ctypes.TxOutput, jsonstring string, confirmed bool, fee ctypes.Value, err error) {
 func (h *FSNHandler) GetTransactionInfo(txhash string) (*ctypes.TransactionInfo, error) {
-    var err error
+	var err error
 	client, err := ethclient.Dial(url)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 
-	txOutputs := make([]ctypes.TxOutput,0)
+	txOutputs := make([]ctypes.TxOutput, 0)
 	txinfo := &ctypes.TransactionInfo{}
 	hash := common.HexToHash(txhash)
 	tx, isPending, err1 := client.TransactionByHash(context.Background(), hash)
@@ -231,12 +231,12 @@ func (h *FSNHandler) GetTransactionInfo(txhash string) (*ctypes.TransactionInfo,
 	r, receipterr := client.TransactionReceipt(context.Background(), hash)
 	if receipterr != nil {
 		err = fmt.Errorf("get transaction receipt fail " + receipterr.Error())
-		return nil,err
+		return nil, err
 	}
 	fmt.Printf("===============fsn.GetTransactionInfo,receipt = %v=================\n", r)
 	if r == nil {
 		err = fmt.Errorf("get transaction receipt fail")
-		return nil,err
+		return nil, err
 	}
 
 	var fee ctypes.Value
@@ -244,7 +244,32 @@ func (h *FSNHandler) GetTransactionInfo(txhash string) (*ctypes.TransactionInfo,
 	txinfo.Fee = fee
 	txinfo.TxOutputs = txOutputs
 
-	return txinfo,err
+	return txinfo, err
+}
+
+func (h *FSNHandler) FiltTransaction(blocknumber uint64, filter ctypes.Filter) (txhashes []string, err error) {
+	client, err := ethclient.Dial(url)
+	if err != nil {
+		return nil, err
+	}
+	blk, err := client.BlockByNumber(context.Background(), big.NewInt(int64(blocknumber)))
+	if err != nil {
+		return nil, err
+	}
+	txhashes = make([]string, 0)
+	ffrom := common.HexToAddress(filter.From)
+	frecpt := common.HexToAddress(filter.Receipient)
+	for _, tx := range blk.Transactions() {
+		msg, _ := tx.AsMessage(nil)
+		if txfrom := msg.From(); txfrom != ffrom {
+			continue
+		}
+		if txcontract := msg.To(); *txcontract != frecpt {
+			continue
+		}
+		txhashes = append(txhashes, tx.Hash().Hex())
+	}
+	return
 }
 
 func (h *FSNHandler) GetAddressBalance(address string, jsonstring string) (balance ctypes.Balance, err error) {
@@ -301,7 +326,7 @@ func decodePubkey(e [64]byte) (*ecdsa.PublicKey, error) {
 	return p, nil
 }
 
-func fsn_newUnsignedTransaction(client *ethclient.Client, dcrmAddress string, toAddressHex string, amount *big.Int, gasPrice *big.Int, gasLimit uint64,memo string) (*ctypes.Transaction, *common.Hash, error) {
+func fsn_newUnsignedTransaction(client *ethclient.Client, dcrmAddress string, toAddressHex string, amount *big.Int, gasPrice *big.Int, gasLimit uint64, memo string) (*ctypes.Transaction, *common.Hash, error) {
 
 	fmt.Printf("================ amount = %v ================\n", amount)
 	fmt.Printf("================ gasPrice = %v ================\n", gasPrice)
@@ -365,14 +390,14 @@ func makeSignedTransaction(client *ethclient.Client, tx *ctypes.Transaction, rsv
 
 	message, err := hex.DecodeString(rsv)
 	if err != nil {
-		fmt.Println("=============== makeSignedTransaction,1111 err = %v ===============\n",err)
+		fmt.Println("=============== makeSignedTransaction,1111 err = %v ===============\n", err)
 		return nil, err
 	}
 	signer := ctypes.NewEIP155Signer(chainID)
 
 	signedtx, err := tx.WithSignature(signer, message)
 	if err != nil {
-		fmt.Println("=============== makeSignedTransaction,222 err = %v ===============\n",err)
+		fmt.Println("=============== makeSignedTransaction,222 err = %v ===============\n", err)
 		return nil, err
 	}
 
