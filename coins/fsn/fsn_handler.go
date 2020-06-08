@@ -250,17 +250,20 @@ func (h *FSNHandler) GetTransactionInfo(txhash string) (*ctypes.TransactionInfo,
 func (h *FSNHandler) FiltTransaction(blocknumber uint64, filter ctypes.Filter) (txhashes []string, err error) {
 	client, err := ethclient.Dial(url)
 	if err != nil {
+		fmt.Printf("ethclient dial error, %v\n", err)
 		return nil, err
 	}
 	blk, err := client.BlockByNumber(context.Background(), big.NewInt(int64(blocknumber)))
 	if err != nil {
+		fmt.Printf("get block by number error: %v\n", err)
 		return nil, err
 	}
 	txhashes = make([]string, 0)
 	ffrom := common.HexToAddress(filter.From)
 	frecpt := common.HexToAddress(filter.Receipient)
+	signer := ctypes.MakeSigner(chainConfig, big.NewInt(int64(blocknumber)))
 	for _, tx := range blk.Transactions() {
-		msg, _ := tx.AsMessage(nil)
+		msg, _ := tx.AsMessage(signer)
 		if txfrom := msg.From(); txfrom != ffrom {
 			continue
 		}

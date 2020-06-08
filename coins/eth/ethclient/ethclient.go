@@ -413,6 +413,7 @@ func (ec *Client) getBlock(ctx context.Context, method string, args ...interface
 	var head *types.Header
 	var body rpcBlock
 	if err := json.Unmarshal(raw, &head); err != nil {
+		fmt.Printf("raw: %+v\n", string(raw))
 		return nil, err
 	}
 	if err := json.Unmarshal(raw, &body); err != nil {

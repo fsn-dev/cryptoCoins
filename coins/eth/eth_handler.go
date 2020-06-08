@@ -251,8 +251,9 @@ func (h *ETHHandler) FiltTransaction(blocknumber uint64, filter types.Filter) (t
 	txhashes = make([]string, 0)
 	ffrom := common.HexToAddress(filter.From)
 	frecpt := common.HexToAddress(filter.Receipient)
+	signer := ctypes.MakeSigner(chainConfig, big.NewInt(int64(blocknumber)))
 	for _, tx := range blk.Transactions() {
-		msg, _ := tx.AsMessage(nil)
+		msg, _ := tx.AsMessage(signer)
 		if txfrom := msg.From(); txfrom != ffrom {
 			continue
 		}
