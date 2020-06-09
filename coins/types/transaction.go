@@ -810,7 +810,10 @@ func (tx *Transaction) UnmarshalJSON(input []byte) error {
 	return nil
 }
 
-func (tx *Transaction) Data() []byte { return common.CopyBytes(tx.Td.Payload) }
+func (tx *Transaction) Data() []byte { 
+    return common.CopyBytes(tx.Td.Payload) 
+}
+
 func (tx *Transaction) Gas() uint64 {
 
 	if !IsDcrmLockIn(tx) && !IsDcrmConfirmAddr(tx) {

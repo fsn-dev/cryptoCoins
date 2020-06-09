@@ -61,7 +61,8 @@ func (t *TxData) UnmarshalJSON(input []byte) error {
 		GasLimit     *hexutil.Uint64 `json:"gas"      gencodec:"required"`
 		Recipient    *common.Address `json:"to"       rlp:"nil"`
 		Amount       *hexutil.Big    `json:"value"    gencodec:"required"`
-		Payload      *hexutil.Bytes  `json:"input"    gencodec:"required"`
+		//Payload      *hexutil.Bytes  `json:"input"    gencodec:"required"`
+		Payload      string  `json:"input"    gencodec:"required"`
 		V            *hexutil.Big    `json:"v" gencodec:"required"`
 		R            *hexutil.Big    `json:"r" gencodec:"required"`
 		S            *hexutil.Big    `json:"s" gencodec:"required"`
@@ -90,10 +91,18 @@ func (t *TxData) UnmarshalJSON(input []byte) error {
 		return errors.New("missing required field 'value' for TxData")
 	}
 	t.Amount = (*big.Int)(dec.Amount)
-	if dec.Payload == nil {
-		return errors.New("missing required field 'input' for TxData")
+	//if dec.Payload == nil {
+	//	return errors.New("missing required field 'input' for TxData")
+	//}
+	//if dec.Payload != nil {
+	//    t.Payload = *dec.Payload
+	//}
+	if dec.Payload == "" || dec.Payload == "0x0" {
+	    t.Payload = nil 
+	} else {
+	    data,_ := new(big.Int).SetString(dec.Payload,0)
+	    t.Payload = data.Bytes()
 	}
-	t.Payload = *dec.Payload
 	if dec.V == nil {
 		return errors.New("missing required field 'v' for TxData")
 	}
