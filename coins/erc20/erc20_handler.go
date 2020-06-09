@@ -31,8 +31,8 @@ import (
 	"time"
 
 	"github.com/fsn-dev/cryptoCoins/coins/eth/ethclient"
-	ethcrypto "github.com/fsn-dev/cryptoCoins/tools/crypto"
 	"github.com/fsn-dev/cryptoCoins/tools/common"
+	ethcrypto "github.com/fsn-dev/cryptoCoins/tools/crypto"
 	"github.com/fsn-dev/cryptoCoins/tools/params"
 
 	"github.com/fsn-dev/cryptoCoins/coins/config"
@@ -123,7 +123,7 @@ func (h *ERC20Handler) PublicKeyToAddress(pubKeyHex string) (address string, err
 }
 
 // jsonstring '{"gasPrice":8000000000,"gasLimit":50000,"tokenType":"BNB"}'
-func (h *ERC20Handler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddress string, amount *big.Int, jsonstring string,memo string) (transaction interface{}, digests []string, err error) {
+func (h *ERC20Handler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddress string, amount *big.Int, jsonstring string, memo string) (transaction interface{}, digests []string, err error) {
 	defer func() {
 		if e := recover(); e != nil {
 			err = fmt.Errorf("Runtime error: %v\n%v", e, string(debug.Stack()))
@@ -157,7 +157,7 @@ func (h *ERC20Handler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAd
 	if err != nil {
 		return
 	}
-	transaction, hash, err := erc20_newUnsignedTransaction(client, fromAddress, toAddress, amount, gasPrice, gasLimit, h.TokenType,memo)
+	transaction, hash, err := erc20_newUnsignedTransaction(client, fromAddress, toAddress, amount, gasPrice, gasLimit, h.TokenType, memo)
 	hashStr := hash.Hex()
 	if hashStr[:2] == "0x" {
 		hashStr = hashStr[2:]
@@ -197,21 +197,21 @@ func (h *ERC20Handler) MakeSignedTransactionByJson(rsv []string, txjson string) 
 	var tx ctypes.Transaction
 	err = json.Unmarshal([]byte(txjson), &tx)
 	if err != nil {
-	    fmt.Printf("==================MakeSignedTransactionByJson,unmarshal txjson,err = %v ====================\n",err)
-	    return nil,err
+		fmt.Printf("==================MakeSignedTransactionByJson,unmarshal txjson,err = %v ====================\n", err)
+		return nil, err
 	}
-	
-	return h.MakeSignedTransaction(rsv,&tx)
+
+	return h.MakeSignedTransaction(rsv, &tx)
 }
 
 func (h *ERC20Handler) SubmitTransactionByJson(txjson string) (txhash string, err error) {
 	var tx ctypes.Transaction
 	err = json.Unmarshal([]byte(txjson), &tx)
 	if err != nil {
-	    fmt.Printf("==================SubmitTransactionByJson,unmarshal txjson,err = %v ====================\n",err)
-	    return "",err
+		fmt.Printf("==================SubmitTransactionByJson,unmarshal txjson,err = %v ====================\n", err)
+		return "", err
 	}
-	
+
 	return h.SubmitTransaction(&tx)
 }
 
@@ -233,7 +233,7 @@ func (h *ERC20Handler) SubmitTransaction(signedTransaction interface{}) (ret str
 
 //func (h *ERC20Handler) GetTransactionInfo(txhash string) (fromAddress string, txOutputs []ctypes.TxOutput, jsonstring string, confirmed bool, fee ctypes.Value, err error) {
 func (h *ERC20Handler) GetTransactionInfo(txhash string) (*ctypes.TransactionInfo, error) {
-    var err error
+	var err error
 	defer func() {
 		if e := recover(); e != nil {
 			err = fmt.Errorf("Runtime error: %v\n%v", e, string(debug.Stack()))
@@ -243,12 +243,12 @@ func (h *ERC20Handler) GetTransactionInfo(txhash string) (*ctypes.TransactionInf
 
 	var jsonstring string
 	txinfo := &ctypes.TransactionInfo{}
-	txOutputs := make([]ctypes.TxOutput,0)
+	txOutputs := make([]ctypes.TxOutput, 0)
 	var realGasPrice *big.Int
 	realGasPrice = gasPrice
 	client, err := ethclient.Dial(url)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 	hash := common.HexToHash(txhash)
 	tx, isPending, err1 := client.TransactionByHash(context.Background(), hash)
@@ -272,7 +272,7 @@ func (h *ERC20Handler) GetTransactionInfo(txhash string) (*ctypes.TransactionInf
 		//bug
 		if jsonstring == "" {
 			err = errors.New("get token type fail.")
-			return nil,err
+			return nil, err
 		}
 		//
 
@@ -289,7 +289,7 @@ func (h *ERC20Handler) GetTransactionInfo(txhash string) (*ctypes.TransactionInf
 		txOutputs = append(txOutputs, txOutput)
 		if decodeErr != nil {
 			err = decodeErr
-			return nil,err
+			return nil, err
 		}
 	} else if err1 != nil {
 		err = err1
@@ -304,12 +304,12 @@ func (h *ERC20Handler) GetTransactionInfo(txhash string) (*ctypes.TransactionInf
 	r, receipterr := client.TransactionReceipt(ctx, hash)
 	if receipterr != nil {
 		err = fmt.Errorf("get transaction receipt fail " + receipterr.Error())
-		return nil,err
+		return nil, err
 	}
 	fmt.Printf("===============erc20.GetTransactionInfo,", "receipt", r, "", "=================")
 	if r == nil {
 		err = fmt.Errorf("get transaction receipt fail")
-		return nil,err
+		return nil, err
 	}
 
 	// status
@@ -350,7 +350,42 @@ func (h *ERC20Handler) GetTransactionInfo(txhash string) (*ctypes.TransactionInf
 
 	txinfo.TxOutputs = txOutputs
 	txinfo.Jsonstring = jsonstring
-	return txinfo,err
+	return txinfo, err
+}
+
+func (h *ERC20Handler) FiltTransaction(blocknumber uint64, filter ctypes.Filter) (txhashes []string, err error) {
+	client, err := ethclient.Dial(url)
+	if err != nil {
+		return nil, err
+	}
+	blk, err := client.BlockByNumber(context.Background(), big.NewInt(int64(blocknumber)))
+	if err != nil {
+		return nil, err
+	}
+	txhashes = make([]string, 0)
+	ffrom := common.HexToAddress(filter.From)
+	frecpt := common.HexToAddress(filter.Receipient)
+	fcontract := common.HexToAddress(filter.Contract)
+	signer := ctypes.MakeSigner(chainConfig, big.NewInt(int64(blocknumber)))
+	for _, tx := range blk.Transactions() {
+		msg, _ := tx.AsMessage(signer)
+		if txfrom := msg.From(); txfrom != ffrom {
+			continue
+		}
+		if txcontract := msg.To(); *txcontract != fcontract {
+			continue
+		}
+		txdata := tx.Data()
+		txrecpt, _, err := DecodeTransferData(txdata)
+		if err != nil {
+			continue
+		}
+		if common.HexToAddress(txrecpt) != frecpt {
+			continue
+		}
+		txhashes = append(txhashes, tx.Hash().Hex())
+	}
+	return
 }
 
 // jsonstring:'{"tokenType":"BNB"}'
@@ -492,7 +527,7 @@ func DecodeTransferData(data []byte) (toAddress string, transferAmount *big.Int,
 	return
 }
 
-func erc20_newUnsignedTransaction(client *ethclient.Client, dcrmAddress string, toAddressHex string, amount *big.Int, gasPrice *big.Int, gasLimit uint64, tokenType string,memo string) (*ctypes.Transaction, *common.Hash, error) {
+func erc20_newUnsignedTransaction(client *ethclient.Client, dcrmAddress string, toAddressHex string, amount *big.Int, gasPrice *big.Int, gasLimit uint64, tokenType string, memo string) (*ctypes.Transaction, *common.Hash, error) {
 
 	chainID, err := client.NetworkID(context.Background())
 

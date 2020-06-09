@@ -23,12 +23,12 @@ import (
 )
 
 type TransactionInfo struct {
-    FromAddress string
-    TxOutputs []TxOutput
-    Jsonstring string
-    Confirmed bool
-    Confirm int
-    Fee Value
+	FromAddress string
+	TxOutputs   []TxOutput
+	Jsonstring  string
+	Confirmed   bool
+	Confirm     int
+	Fee         Value
 }
 
 type TxOutput struct {

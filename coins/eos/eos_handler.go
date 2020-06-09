@@ -75,15 +75,15 @@ func (h *EOSHandler) PublicKeyToAddress(pubKeyHex string) (acctName string, err 
 // 构造Lockin交易, 开发用
 func (h *EOSHandler) BuildUnsignedLockinTransaction(fromAddress, toUserKey, toAcctName string, amount *big.Int, jsonstring string) (transaction interface{}, digests []string, err error) {
 	memo := toUserKey
-	digest, transaction, err := EOS_newUnsignedTransaction(fromAddress, toAcctName, amount, memo,"")
+	digest, transaction, err := EOS_newUnsignedTransaction(fromAddress, toAcctName, amount, memo, "")
 	digests = append(digests, digest)
 	return
 }
 
 // 构造交易
-func (h *EOSHandler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAcctName string, amount *big.Int, jsonstring string,memo string) (transaction interface{}, digests []string, err error) {
+func (h *EOSHandler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAcctName string, amount *big.Int, jsonstring string, memo string) (transaction interface{}, digests []string, err error) {
 	memo2 := GenAccountName(fromPublicKey)
-	digest, transaction, err := EOS_newUnsignedTransaction(fromAddress, toAcctName, amount, memo2,memo)
+	digest, transaction, err := EOS_newUnsignedTransaction(fromAddress, toAcctName, amount, memo2, memo)
 	digests = append(digests, digest)
 	return
 }
@@ -104,21 +104,21 @@ func (h *EOSHandler) MakeSignedTransactionByJson(rsv []string, txjson string) (s
 	var tx eos.SignedTransaction
 	err = json.Unmarshal([]byte(txjson), &tx)
 	if err != nil {
-	    fmt.Printf("==================MakeSignedTransactionByJson,unmarshal txjson,err = %v ====================\n",err)
-	    return nil,err
+		fmt.Printf("==================MakeSignedTransactionByJson,unmarshal txjson,err = %v ====================\n", err)
+		return nil, err
 	}
-	
-	return h.MakeSignedTransaction(rsv,&tx)
+
+	return h.MakeSignedTransaction(rsv, &tx)
 }
 
 func (h *EOSHandler) SubmitTransactionByJson(txjson string) (txhash string, err error) {
 	var tx eos.SignedTransaction
 	err = json.Unmarshal([]byte(txjson), &tx)
 	if err != nil {
-	    fmt.Printf("==================SubmitTransactionByJson,unmarshal txjson,err = %v ====================\n",err)
-	    return "",err
+		fmt.Printf("==================SubmitTransactionByJson,unmarshal txjson,err = %v ====================\n", err)
+		return "", err
 	}
-	
+
 	return h.SubmitTransaction(&tx)
 }
 
@@ -192,23 +192,23 @@ func (h *EOSHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo, 
 	resp, err1 := http.Get(req)
 	if err1 != nil {
 		err = err1
-		return nil,err
+		return nil, err
 	}
 	defer resp.Body.Close()
 	body, err2 := ioutil.ReadAll(resp.Body)
 	if err2 != nil {
 		err = err2
-		return nil,err
+		return nil, err
 	}
 	var b interface{}
 	err3 := json.Unmarshal(body, &b)
 	if err3 != nil {
 		err = err3
-		return nil,err
+		return nil, err
 	}
 	txstrI := b.(map[string]interface{})["Tx"]
 	if txstrI == nil {
-		return nil,err
+		return nil, err
 	}
 	txstr := txstrI.(string)
 	txstr = strings.Replace(txstr, "\\", "", -1)
@@ -216,11 +216,11 @@ func (h *EOSHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo, 
 	err4 := json.Unmarshal([]byte(txstr), &eostx)
 	if err4 != nil {
 		err = err4
-		return nil,err
+		return nil, err
 	}
 	fromAddress := eostx.FromAddress
 
-	txOutputs := make([]types.TxOutput,0)
+	txOutputs := make([]types.TxOutput, 0)
 	for _, x := range eostx.TxOutputs {
 		txOutputs = append(txOutputs, *x.ToTxOutput())
 	}
@@ -231,8 +231,12 @@ func (h *EOSHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo, 
 	fee.Cointype = "EOS"
 	fee.Val = big.NewInt(eostx.Fee)
 
-	txinfo := &types.TransactionInfo{FromAddress:fromAddress,TxOutputs:txOutputs,Jsonstring:"",Confirmed:confirmed,Confirm:0,Fee:fee}
-	return txinfo,err
+	txinfo := &types.TransactionInfo{FromAddress: fromAddress, TxOutputs: txOutputs, Jsonstring: "", Confirmed: confirmed, Confirm: 0, Fee: fee}
+	return txinfo, err
+}
+
+func (h *EOSHandler) FiltTransaction(blocknumber uint64, filter types.Filter) (txhashes []string, err error) {
+	return nil, nil
 }
 
 type EOSTx struct {
@@ -438,7 +442,7 @@ func GenAccountName(pubKeyHex string) string {
 	return crypto.Base58Encode(b, ALPHABET)
 }
 
-func EOS_newUnsignedTransaction(fromAcctName, toAcctName string, amount *big.Int, memo2 string,memo string) (string, *eos.SignedTransaction, error) {
+func EOS_newUnsignedTransaction(fromAcctName, toAcctName string, amount *big.Int, memo2 string, memo string) (string, *eos.SignedTransaction, error) {
 	from := eos.AccountName(fromAcctName)
 	to := eos.AccountName(toAcctName)
 	s := strconv.FormatFloat(float64(amount.Int64())/10000, 'f', 4, 64) + " EOS"

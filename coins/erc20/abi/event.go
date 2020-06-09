@@ -20,8 +20,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/fsn-dev/cryptoCoins/tools/crypto"
 	"github.com/fsn-dev/cryptoCoins/tools/common"
+	"github.com/fsn-dev/cryptoCoins/tools/crypto"
 )
 
 // Event is an event potentially triggered by the EVM's LOG mechanism. The Event

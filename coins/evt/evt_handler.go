@@ -102,7 +102,7 @@ func (h *EvtHandler) PublicKeyToAddress(pubKeyHex string) (address string, err e
 	return
 }
 
-func (h *EvtHandler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddress string, amount *big.Int, jsonstring string,memo string) (transaction interface{}, digests []string, err error) {
+func (h *EvtHandler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddress string, amount *big.Int, jsonstring string, memo string) (transaction interface{}, digests []string, err error) {
 
 	key := strconv.Itoa(int(h.TokenId))
 	number := makeEVTFTNumber(amount, key)
@@ -119,7 +119,7 @@ func (h *EvtHandler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddr
 		To:     toAddress,
 		Number: number,
 		//Memo:   "this is a dcrm lockout (^_^)",
-		Memo:   memo,
+		Memo: memo,
 	}
 	actarg := chain.ActionArguments{
 		Action: "transferft",
@@ -146,9 +146,9 @@ func (h *EvtHandler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddr
 		Key:    key,
 	}
 	trx := &evttypes.TRXJson{
-		MaxCharge: 10000,
-		Actions:   []evttypes.SimpleAction{{Action: action, Data: res.Binargs}},
-		Payer:     fromAddress,
+		MaxCharge:             10000,
+		Actions:               []evttypes.SimpleAction{{Action: action, Data: res.Binargs}},
+		Payer:                 fromAddress,
 		TransactionExtensions: make([]interface{}, 0),
 	}
 
@@ -200,21 +200,21 @@ func (h *EvtHandler) MakeSignedTransactionByJson(rsv []string, txjson string) (s
 	var tx evttypes.SignedTRXJson
 	err = json.Unmarshal([]byte(txjson), &tx)
 	if err != nil {
-	    fmt.Printf("==================MakeSignedTransactionByJson,unmarshal txjson,err = %v ====================\n",err)
-	    return nil,err
+		fmt.Printf("==================MakeSignedTransactionByJson,unmarshal txjson,err = %v ====================\n", err)
+		return nil, err
 	}
-	
-	return h.MakeSignedTransaction(rsv,&tx)
+
+	return h.MakeSignedTransaction(rsv, &tx)
 }
 
 func (h *EvtHandler) SubmitTransactionByJson(txjson string) (txhash string, err error) {
 	var tx evttypes.SignedTRXJson
 	err = json.Unmarshal([]byte(txjson), &tx)
 	if err != nil {
-	    fmt.Printf("==================SubmitTransactionByJson,unmarshal txjson,err = %v ====================\n",err)
-	    return "",err
+		fmt.Printf("==================SubmitTransactionByJson,unmarshal txjson,err = %v ====================\n", err)
+		return "", err
 	}
-	
+
 	return h.SubmitTransaction(&tx)
 }
 
@@ -255,7 +255,7 @@ func (h *EvtHandler) SubmitTransaction(signedTransaction interface{}) (txhash st
 
 //func (h *EvtHandler) GetTransactionInfo(txhash string) (fromAddress string, txOutputs []types.TxOutput, jsonstring string, confirmed bool, fee types.Value, err error) {
 func (h *EvtHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo, error) {
-    var err error
+	var err error
 	defer func() {
 		if e := recover(); e != nil {
 			err = fmt.Errorf("Runtime error: %v\n%v", e, string(debug.Stack()))
@@ -264,7 +264,7 @@ func (h *EvtHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo, 
 	}()
 
 	txinfo := &types.TransactionInfo{}
-	txOutputs := make([]types.TxOutput,0)
+	txOutputs := make([]types.TxOutput, 0)
 	var fee types.Value
 	fee = h.GetDefaultFee()
 	// TODO 获取真实fee
@@ -278,7 +278,7 @@ func (h *EvtHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo, 
 	res, apierr := apihistory.GetTransaction(txhash)
 	if apierr != nil {
 		err = apierr.Error()
-		return nil,err
+		return nil, err
 	}
 	txinfo.Confirmed = true
 	//fromAddress = res.InnerTransaction.Payer
@@ -297,7 +297,11 @@ func (h *EvtHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo, 
 	}
 	txinfo.TxOutputs = txOutputs
 	txinfo.Fee = fee
-	return txinfo,err
+	return txinfo, err
+}
+
+func (h *EvtHandler) FiltTransaction(blocknumber uint64, filter types.Filter) (txhashes []string, err error) {
+	return nil, nil
 }
 
 func parseAction(tarid uint, transfer *chain.Action) (*types.TxOutput, error) {

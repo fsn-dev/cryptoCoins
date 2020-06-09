@@ -79,7 +79,7 @@ func (h *AtomHandler) PublicKeyToAddress(pubKeyHex string) (address string, err 
 	return
 }
 
-func (h *AtomHandler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddress string, amount *big.Int, jsonstring string,memo string) (transaction interface{}, digests []string, err error) {
+func (h *AtomHandler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddress string, amount *big.Int, jsonstring string, memo string) (transaction interface{}, digests []string, err error) {
 	fmt.Printf("\n======== atom BuildUnsignedTransaction ========\n")
 	fromacc, err := sdk.AccAddressFromBech32(fromAddress)
 	if err != nil {
@@ -175,21 +175,21 @@ func (h *AtomHandler) MakeSignedTransactionByJson(rsv []string, txjson string) (
 	var tx AtomTx
 	err = json.Unmarshal([]byte(txjson), &tx)
 	if err != nil {
-	    fmt.Printf("==================MakeSignedTransactionByJson,unmarshal txjson,err = %v ====================\n",err)
-	    return nil,err
+		fmt.Printf("==================MakeSignedTransactionByJson,unmarshal txjson,err = %v ====================\n", err)
+		return nil, err
 	}
-	
-	return h.MakeSignedTransaction(rsv,&tx)
+
+	return h.MakeSignedTransaction(rsv, &tx)
 }
 
 func (h *AtomHandler) SubmitTransactionByJson(txjson string) (txhash string, err error) {
 	var tx AtomTx
 	err = json.Unmarshal([]byte(txjson), &tx)
 	if err != nil {
-	    fmt.Printf("==================SubmitTransactionByJson,unmarshal txjson,err = %v ====================\n",err)
-	    return "",err
+		fmt.Printf("==================SubmitTransactionByJson,unmarshal txjson,err = %v ====================\n", err)
+		return "", err
 	}
-	
+
 	return h.SubmitTransaction(&tx)
 }
 
@@ -266,7 +266,7 @@ func (h *AtomHandler) SubmitTransaction(signedTransaction interface{}) (txhash s
 
 //func (h *AtomHandler) GetTransactionInfo(txhash string) (fromAddress string, txOutputs []types.TxOutput, jsonstring string, confirmed bool, fee types.Value, err error) {
 func (h *AtomHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo, error) {
-    var err error
+	var err error
 	defer func() {
 		if e := recover(); e != nil {
 			err = fmt.Errorf("Runtime error: %v\n%v", e, string(debug.Stack()))
@@ -274,7 +274,7 @@ func (h *AtomHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo,
 		}
 	}()
 
-	txOutputs := make([]types.TxOutput,0)
+	txOutputs := make([]types.TxOutput, 0)
 	txinfo := &types.TransactionInfo{}
 	var fee types.Value
 	fee = h.GetDefaultFee()
@@ -294,11 +294,11 @@ func (h *AtomHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo,
 	txhashb, err := hex.DecodeString(txhash)
 	node, err := c.GetNode()
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 	resTx, err := node.Tx([]byte(txhashb), true)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 
 	fmt.Printf("\n========\nresTx:\n%+v\n========\n", resTx)
@@ -319,7 +319,11 @@ func (h *AtomHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo,
 
 	txinfo.Fee = fee
 	txinfo.TxOutputs = txOutputs
-	return txinfo,err
+	return txinfo, err
+}
+
+func (h *AtomHandler) FiltTransaction(blocknumber uint64, filter types.Filter) (txhashes []string, err error) {
+	return nil, nil
 }
 
 func (h *AtomHandler) GetAddressBalance(address string, jsonstring string) (balance types.Balance, err error) {

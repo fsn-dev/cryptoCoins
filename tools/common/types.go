@@ -26,8 +26,8 @@ import (
 	"reflect"
 	"strings"
 
-	"github.com/fsn-dev/cryptoCoins/tools/crypto/sha3"
 	"github.com/fsn-dev/cryptoCoins/tools/common/hexutil"
+	"github.com/fsn-dev/cryptoCoins/tools/crypto/sha3"
 )
 
 // Lengths of hashes and addresses in bytes.

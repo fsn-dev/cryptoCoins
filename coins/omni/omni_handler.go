@@ -141,7 +141,7 @@ func (h *OmniHandler) PublicKeyToAddress(pubKeyHex string) (address string, err 
 	return
 }
 
-func (h *OmniHandler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddress string, amount *big.Int, jsonstring string,memo string) (transaction interface{}, digests []string, err error) {
+func (h *OmniHandler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddress string, amount *big.Int, jsonstring string, memo string) (transaction interface{}, digests []string, err error) {
 	defer func() {
 		if e := recover(); e != nil {
 			err = fmt.Errorf("Runtime error: %v\n%v\n", e, string(debug.Stack()))
@@ -218,9 +218,9 @@ func (h *OmniHandler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAdd
 	//add memo
 	data := []byte(memo)
 	builder := txscript.NewScriptBuilder()
-	nullScript,err := builder.AddOp(txscript.OP_RETURN).AddData(data).Script()
+	nullScript, err := builder.AddOp(txscript.OP_RETURN).AddData(data).Script()
 	if err != nil {
-	    return
+		return
 	}
 	txOut2 := wire.NewTxOut(0, nullScript)
 	txOuts = append(txOuts, txOut2)
@@ -316,7 +316,7 @@ func (h *OmniHandler) SignTransaction(hash []string, wif interface{}) (rsv []str
 }
 
 func (h *OmniHandler) MakeSignedTransactionByJson(rsv []string, txjson string) (signedTransaction interface{}, err error) {
-	return h.btcHandler.MakeSignedTransactionByJson(rsv,txjson)
+	return h.btcHandler.MakeSignedTransactionByJson(rsv, txjson)
 }
 
 func (h *OmniHandler) SubmitTransactionByJson(txjson string) (txhash string, err error) {
@@ -338,7 +338,7 @@ func (h *OmniHandler) SubmitTransaction(signedTransaction interface{}) (ret stri
 
 //func (h *OmniHandler) GetTransactionInfo(txhash string) (fromAddress string, txOutputs []types.TxOutput, jsonstring string, confirmed bool, fee types.Value, err error) {
 func (h *OmniHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo, error) {
-    var err error
+	var err error
 	defer func() {
 		if e := recover(); e != nil {
 			err = fmt.Errorf("Runtime error: %v\n%v", e, string(debug.Stack()))
@@ -353,26 +353,26 @@ func (h *OmniHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo,
 	ret, err1 := client.Send(reqstr)
 	if err1 != nil {
 		err = err1
-		return nil,err
+		return nil, err
 	}
 
 	if ret == "" {
 		err = fmt.Errorf("failed get transaction")
-		return nil,err
+		return nil, err
 	}
 	omniTx := DecodeOmniTx(ret)
 	if omniTx.Error != nil {
 		err = omniTx.Error
-		return nil,err
+		return nil, err
 	}
 
 	//confirmed = (omniTx.Confirmations >= btc.RequiredConfirmations) && omniTx.Valid
 	confirmed := (omniTx.Confirmations >= btc.RequiredConfirmations) && omniTx.Valid
 	txinfo.Confirmed = confirmed
 	if omniTx.Valid {
-	    txinfo.Confirm = int(omniTx.Confirmations)
+		txinfo.Confirm = int(omniTx.Confirmations)
 	} else {
-	    txinfo.Confirm = 0 
+		txinfo.Confirm = 0
 	}
 	//**************************
 	//	confirmed = true
@@ -389,7 +389,7 @@ func (h *OmniHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo,
 		ToAddress: omniTx.To,
 		Amount:    omniTx.Amount,
 	}
-	txOutputs := make([]types.TxOutput,0)
+	txOutputs := make([]types.TxOutput, 0)
 	txOutputs = append(txOutputs, txOutput)
 	txinfo.TxOutputs = txOutputs
 	fmt.Printf("========== OMNI_GetTransactionInfo ========\n")
@@ -401,7 +401,11 @@ func (h *OmniHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo,
 	}
 	txinfo.Fee = fee
 
-	return txinfo,err
+	return txinfo, err
+}
+
+func (h *OmniHandler) FiltTransaction(blocknumber uint64, filter types.Filter) (txhashes []string, err error) {
+	return nil, nil
 }
 
 func toSatoshi(str string) string {

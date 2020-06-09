@@ -117,7 +117,7 @@ func (h *BTCHandler) PublicKeyToAddress(pubKeyHex string) (address string, err e
 }
 
 // jsonstring: '{"feeRate":0.0001,"changAddress":"mtjq9RmBBDVne7YB4AFHYCZFn3P2AXv9D5"}'
-func (h *BTCHandler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddress string, amount *big.Int, jsonstring string,memo string) (transaction interface{}, digests []string, err error) {
+func (h *BTCHandler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddress string, amount *big.Int, jsonstring string, memo string) (transaction interface{}, digests []string, err error) {
 	fmt.Printf("\nBTC handler: %+v\n\n", h)
 	defer func() {
 		if e := recover(); e != nil {
@@ -177,12 +177,12 @@ func (h *BTCHandler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAddr
 	pkscript, _ := txscript.PayToAddrScript(toAddr)
 	txOut := wire.NewTxOut(amount.Int64(), pkscript)
 	txOuts = append(txOuts, txOut)
-	//add memo 
+	//add memo
 	data := []byte(memo)
 	builder := txscript.NewScriptBuilder()
-	nullScript,err := builder.AddOp(txscript.OP_RETURN).AddData(data).Script()
+	nullScript, err := builder.AddOp(txscript.OP_RETURN).AddData(data).Script()
 	if err != nil {
-	    return
+		return
 	}
 	txOut2 := wire.NewTxOut(0, nullScript)
 	txOuts = append(txOuts, txOut2)
@@ -286,21 +286,21 @@ func (h *BTCHandler) MakeSignedTransactionByJson(rsv []string, txjson string) (s
 	var tx AuthoredTx
 	err = json.Unmarshal([]byte(txjson), &tx)
 	if err != nil {
-	    fmt.Printf("==================MakeSignedTransactionByJson,unmarshal txjson,err = %v ====================\n",err)
-	    return nil,err
+		fmt.Printf("==================MakeSignedTransactionByJson,unmarshal txjson,err = %v ====================\n", err)
+		return nil, err
 	}
-	
-	return h.MakeSignedTransaction(rsv,&tx)
+
+	return h.MakeSignedTransaction(rsv, &tx)
 }
 
 func (h *BTCHandler) SubmitTransactionByJson(txjson string) (txhash string, err error) {
 	var tx AuthoredTx
 	err = json.Unmarshal([]byte(txjson), &tx)
 	if err != nil {
-	    fmt.Printf("==================SubmitTransactionByJson,unmarshal txjson,err = %v ====================\n",err)
-	    return "",err
+		fmt.Printf("==================SubmitTransactionByJson,unmarshal txjson,err = %v ====================\n", err)
+		return "", err
 	}
-	
+
 	return h.SubmitTransaction(&tx)
 }
 
@@ -370,7 +370,7 @@ func (h *BTCHandler) SubmitTransaction(signedTransaction interface{}) (ret strin
 
 //func (h *BTCHandler) GetTransactionInfo(txhash string) (fromAddress string, txOutputs []types.TxOutput, jsonstring string, confirmed bool, fee types.Value, err error) {
 func (h *BTCHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo, error) {
-    var err error
+	var err error
 	defer func() {
 		if e := recover(); e != nil {
 			err = fmt.Errorf("Runtime error: %v\n%v", e, string(debug.Stack()))
@@ -380,14 +380,14 @@ func (h *BTCHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo, 
 
 	var fromAddress string
 	txinfo := &types.TransactionInfo{}
-	txOutputs := make([]types.TxOutput,0)
+	txOutputs := make([]types.TxOutput, 0)
 	var fee types.Value
 	fee = h.GetDefaultFee()
 	grtreq := `{"jsonrpc":"1.0","method":"getrawtransaction","params":["` + txhash + `",true],"id":1}`
 	client, _ := rpcutils.NewClient(h.serverHost, h.serverPort, h.rpcuser, h.passwd, h.usessl)
 	ret1, err := client.Send(grtreq)
 	if err != nil {
-		return nil,err
+		return nil, err
 	} else {
 		var ret1Obj interface{}
 		//log.Debug("==================btc.GetTransactionInfo===============","getrawtransaction result",ret1)
@@ -408,14 +408,14 @@ func (h *BTCHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo, 
 
 	marshalledJSON, err := btcjson.MarshalCmd(1, cmd)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 
 	//log.Debug("==================btc.GetTransactionInfo===============","get raw transaction json 111111",string(marshalledJSON))
 	c, _ := rpcutils.NewClient(h.serverHost, h.serverPort, h.rpcuser, h.passwd, h.usessl)
 	retJSON, err := c.Send(string(marshalledJSON))
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 
 	//log.Debug("==================btc.GetTransactionInfo===============","get raw transaction json 2222222",string(retJSON))
@@ -429,7 +429,7 @@ func (h *BTCHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo, 
 	//log.Debug("==================btc.GetTransactionInfo===============","get raw transaction cmd2",cmd2)
 	marshalledJSON2, err := btcjson.MarshalCmd(1, cmd2)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 	//log.Debug("==================btc.GetTransactionInfo===============","get raw transaction json 33333333",string(marshalledJSON2))
 
@@ -470,13 +470,13 @@ func (h *BTCHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo, 
 	//log.Debug("==================btc.GetTransactionInfo===============","cmd3",cmd3)
 	marshalledJSON3, err := btcjson.MarshalCmd(1, cmd3)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 
 	//log.Debug("==================btc.GetTransactionInfo===============","marshalledJSON3",string(marshalledJSON3))
 	retJSON3, err := c.Send(string(marshalledJSON3))
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 	//log.Debug("==================btc.GetTransactionInfo===============","retJSON3",string(retJSON3))
 
@@ -490,13 +490,13 @@ func (h *BTCHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo, 
 
 	marshalledJSON4, err := btcjson.MarshalCmd(1, cmd4)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 	//log.Debug("==================btc.GetTransactionInfo===============","marshalledJSON4",string(marshalledJSON4))
 
 	retJSON4, err := c.Send(string(marshalledJSON4))
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 	//log.Debug("==================btc.GetTransactionInfo===============","retJSON4",string(retJSON4))
 
@@ -508,14 +508,18 @@ func (h *BTCHandler) GetTransactionInfo(txhash string) (*types.TransactionInfo, 
 
 	electrstx, err := GetTransaction_electrs(txhash)
 	if err != nil {
-		return nil,err
+		return nil, err
 	}
 	fee.Val = big.NewInt(int64(electrstx.Fee))
 
 	txinfo.FromAddress = fromAddress
 	txinfo.TxOutputs = txOutputs
 	txinfo.Fee = fee
-	return txinfo,err
+	return txinfo, err
+}
+
+func (h *BTCHandler) FiltTransaction(blocknumber uint64, filter types.Filter) (txhashes []string, err error) {
+	return nil, nil
 }
 
 func (h *BTCHandler) GetAddressBalance(address string, jsonstring string) (balance types.Balance, err error) {
