@@ -158,6 +158,10 @@ func (h *ERC20Handler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAd
 		return
 	}
 	transaction, hash, err := erc20_newUnsignedTransaction(client, fromAddress, toAddress, amount, gasPrice, gasLimit, h.TokenType, memo)
+	if err != nil || transaction == nil || hash == nil {
+	    return
+	}
+
 	hashStr := hash.Hex()
 	if hashStr[:2] == "0x" {
 		hashStr = hashStr[2:]
@@ -532,12 +536,15 @@ func erc20_newUnsignedTransaction(client *ethclient.Client, dcrmAddress string, 
 	chainID, err := client.NetworkID(context.Background())
 
 	if err != nil {
-		return nil, nil, err
+	    fmt.Printf("===============erc20_newUnsignedTransaction,chainId = %v,err = %v =======================\n",chainID,err)
+		//return nil, nil, err
+	    chainID = chainConfig.ChainID
 	}
 
 	tokenAddressHex, ok := Tokens[tokenType]
 	if ok {
 	} else {
+		fmt.Printf("===============erc20_newUnsignedTransaction,tokenType = %v,err = %v =======================\n",tokenType,err)
 		err = errors.New("token not supported")
 		return nil, nil, err
 	}
@@ -545,6 +552,7 @@ func erc20_newUnsignedTransaction(client *ethclient.Client, dcrmAddress string, 
 	if gasPrice == nil {
 		gasPrice, err = client.SuggestGasPrice(context.Background())
 		if err != nil {
+			fmt.Printf("===============erc20_newUnsignedTransaction,gasprice err = %v =======================\n",err)
 			return nil, nil, err
 		}
 	}
@@ -556,6 +564,7 @@ func erc20_newUnsignedTransaction(client *ethclient.Client, dcrmAddress string, 
 	//nonce, err := client.PendingNonceAt(context.Background(), fromAddress)
 	nonce, err := client.NonceAt(context.Background(), fromAddress, nil)
 	if err != nil {
+		fmt.Printf("===============erc20_newUnsignedTransaction,nonce err = %v =======================\n",err)
 		return nil, nil, err
 	}
 
@@ -588,6 +597,7 @@ func erc20_newUnsignedTransaction(client *ethclient.Client, dcrmAddress string, 
 		})
 		gasLimit = gasLimit * 4
 		if err != nil {
+			fmt.Printf("===============erc20_newUnsignedTransaction,gaslimit err = %v =======================\n",err)
 			return nil, nil, err
 		}
 	}
@@ -604,7 +614,8 @@ func erc20_newUnsignedTransaction(client *ethclient.Client, dcrmAddress string, 
 func makeSignedTransaction(client *ethclient.Client, tx *ctypes.Transaction, rsv string) (*ctypes.Transaction, error) {
 	chainID, err := client.NetworkID(context.Background())
 	if err != nil {
-		return nil, err
+	    chainID = chainConfig.ChainID
+	//	return nil, err
 	}
 	fmt.Println("=============makeSignedTransaction,chain id = %v ============", chainID)
 	message, err := hex.DecodeString(rsv)

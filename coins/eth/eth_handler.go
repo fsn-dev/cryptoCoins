@@ -328,7 +328,8 @@ func eth_newUnsignedTransaction(client *ethclient.Client, dcrmAddress string, to
 	fmt.Printf("================ gasLimit = %v ================\n", gasLimit)
 	chainID, err := client.NetworkID(context.Background())
 	if err != nil {
-		return nil, nil, err
+	    chainID = chainConfig.ChainID
+	//	return nil, nil, err
 	}
 	fmt.Printf("================== eth_newUnsignedTransaction,chain id = %v ==================\n", chainID)
 
@@ -376,7 +377,8 @@ func eth_newUnsignedTransaction(client *ethclient.Client, dcrmAddress string, to
 func makeSignedTransaction(client *ethclient.Client, tx *ctypes.Transaction, rsv string) (*ctypes.Transaction, error) {
 	chainID, err := client.NetworkID(context.Background())
 	if err != nil {
-		return nil, err
+	    chainID = chainConfig.ChainID
+	//	return nil, err
 	}
 	fmt.Println("=============== makeSignedTransaction,chain id = %v ===============", chainID)
 

@@ -65,7 +65,15 @@ func DoPostRequest(url, api, reqData string) string {
 func DoPostRequest2(url, reqData string) string {
 	req := bytes.NewBuffer([]byte(reqData))
 	resp, _ := http.Post(url, "application/json;charset=utf-8", req)
+	if resp == nil || resp.Body == nil {
+	    return ""
+	}
+
 	defer resp.Body.Close()
 	body, _ := ioutil.ReadAll(resp.Body)
+	if body == nil {
+	    return ""
+	}
+
 	return string(body)
 }
