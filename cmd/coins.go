@@ -322,7 +322,7 @@ func (this *Service) BuildUnsignedTransaction(fromaddr string, pubkey string, to
 	}
 }
 
-func MakeSignedTransaction(txjson string, rsv string, cointype string) (string, string, error) {
+func MakeSignedTransaction(txjson string, rsv []string, cointype string) (string, string, error) {
 	h := coins.NewCryptocoinHandler(cointype)
 	if h == nil {
 		return "", "unsupported cointype", fmt.Errorf("unsupported cointype")
@@ -375,10 +375,8 @@ func MakeSignedTransaction(txjson string, rsv string, cointype string) (string, 
 	    }
 	    txtmp := types.NewTransaction(n,toaddr,value,gaslimit,gasprice,data)*/
 
-	rsvs := make([]string, 0)
-	rsvs = append(rsvs, rsv)
 	//fmt.Printf("==================MakeSignedTransaction,start make signed tx,nonce = %v,gasprice = %v,gas = %v,to = %v,value = %v,input = %v,hash = %v ====================\n",n,gasprice,gaslimit,toaddr.Hex(),value,string(data),txtmp.Hash().Hex())
-	signtx, err := h.MakeSignedTransactionByJson(rsvs, txjson)
+	signtx, err := h.MakeSignedTransactionByJson(rsv, txjson)
 	if err != nil {
 		fmt.Printf("==================MakeSignedTransaction,make signed tx fail,err = %v ====================\n", err)
 		return "", "", err
@@ -391,10 +389,10 @@ func MakeSignedTransaction(txjson string, rsv string, cointype string) (string, 
 	return string(b), "", err
 }
 
-func (this *Service) MakeSignedTransaction(tx string, rsv string, cointype string) map[string]interface{} {
+func (this *Service) MakeSignedTransaction(tx string, rsv []string, cointype string) map[string]interface{} {
 	fmt.Printf("=====================call rpc MakeSignedTransaction, tx = %v, rsv = %v, cointype = %v ===========================\n", tx, rsv, cointype)
 	data := make(map[string]interface{})
-	if tx == "" || rsv == "" || cointype == "" {
+	if tx == "" || rsv == nil || cointype == "" {
 		data["result"] = ""
 		return map[string]interface{}{
 			"Status": "Error",
@@ -404,12 +402,17 @@ func (this *Service) MakeSignedTransaction(tx string, rsv string, cointype strin
 		}
 	}
 
-	rsvs := []rune(rsv)
-	if string(rsvs[0:2]) == "0x" {
-		rsv = string(rsvs[2:])
+	tmp := make([]string,0)
+	for _,v := range rsv {
+	    vs := []rune(v)
+	    if string(vs[0:2]) == "0x" || string(vs[0:2]) == "0X" {
+		    tmp = append(tmp,string(vs[2:]))
+	    } else {
+		    tmp = append(tmp,v)
+	    }
 	}
 
-	ret, tip, err := MakeSignedTransaction(tx, rsv, cointype)
+	ret, tip, err := MakeSignedTransaction(tx, tmp, cointype)
 	fmt.Printf("=====================finish call rpc MakeSignedTransaction, ret = %v, err = %v, ===========================\n", ret, err)
 	if err != nil {
 		data["result"] = ""

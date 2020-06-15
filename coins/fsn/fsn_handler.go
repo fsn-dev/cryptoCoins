@@ -382,6 +382,7 @@ func fsn_newUnsignedTransaction(client *ethclient.Client, dcrmAddress string, to
 
 	signer := ctypes.NewEIP155Signer(chainID)
 	txhash := signer.Hash(tx)
+	fmt.Printf("===============fsn_newUnsignedTransaction, chainId = %v, txhash = %v ================\n",chainID,txhash.Hex())
 	return tx, &txhash, nil
 }
 
@@ -406,12 +407,14 @@ func makeSignedTransaction(client *ethclient.Client, tx *ctypes.Transaction, rsv
 	}
 
 	//////
+	txhash := signer.Hash(tx)
+	fmt.Println("===================makeSignedTransaction,chainid = %v, txhash = %v ==================", chainID,txhash.Hex())
 	from, err2 := ctypes.Sender(signer, signedtx)
 	if err2 != nil {
 		fmt.Println("===================makeSignedTransaction,3333 err = %v ==================", err2)
 		return nil, err2
 	}
-	fmt.Println("===================makeSignedTransaction,from = %v ==================", from.Hex())
+	fmt.Println("===================makeSignedTransaction,chainid = %v, from = %v ==================", chainID,from.Hex())
 	////
 
 	return signedtx, nil
@@ -420,8 +423,9 @@ func makeSignedTransaction(client *ethclient.Client, tx *ctypes.Transaction, rsv
 func fsn_sendTx(client *ethclient.Client, signedTx *ctypes.Transaction) (string, error) {
 	//data, _:= rlp.EncodeToBytes(signedTx)
 
+	chainID := chainConfig.ChainID
 	signer := ctypes.NewEIP155Signer(signedTx.ChainId())
-	fmt.Println("===================!!! fsn_sendTx,chain id =%v !!!================================", signedTx.ChainId())
+	fmt.Println("===================!!! fsn_sendTx,chain id =%v , chainid = %v !!!================================", signedTx.ChainId(),chainID)
 	from, err2 := ctypes.Sender(signer, signedTx)
 	if err2 != nil {
 		fmt.Println("===================!!! fsn_sendTx,get sender err =%v !!!================================", err2)
