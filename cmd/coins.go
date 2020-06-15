@@ -433,6 +433,7 @@ func (this *Service) MakeSignedTransaction(tx string, rsv string, cointype strin
 func SubmitTransaction(signtx string, cointype string) (string, string, error) {
 	h := coins.NewCryptocoinHandler(cointype)
 	if h == nil {
+	    fmt.Printf("unsupported cointype\n")
 		return "", "unsupported cointype", fmt.Errorf("unsupported cointype")
 	}
 

@@ -190,6 +190,7 @@ func (h *FSNHandler) MakeSignedTransaction(rsv []string, transaction interface{}
 func (h *FSNHandler) SubmitTransaction(signedTransaction interface{}) (txhash string, err error) {
 	client, err := ethclient.Dial(url)
 	if err != nil {
+	    fmt.Printf("====================SubmitTransaction,url = %v, err = %v =========================\n",url,err)
 		return
 	}
 	return fsn_sendTx(client, signedTransaction.(*ctypes.Transaction))

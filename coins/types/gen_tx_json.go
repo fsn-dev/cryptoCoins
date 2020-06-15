@@ -97,11 +97,15 @@ func (t *TxData) UnmarshalJSON(input []byte) error {
 	//if dec.Payload != nil {
 	//    t.Payload = *dec.Payload
 	//}
-	if dec.Payload == "" || dec.Payload == "0x0" {
+	dataprt, ok := new(big.Int).SetString(dec.Payload,0)
+	zero,_ := new(big.Int).SetString("0",0)
+	if dec.Payload == "" || dec.Payload == "0x0" || dec.Payload == "0x" || !ok || dataprt.Cmp(zero) <= 0 {
 	    t.Payload = nil 
 	} else {
 	    data,_ := new(big.Int).SetString(dec.Payload,0)
-	    t.Payload = data.Bytes()
+	    if data != nil {
+		t.Payload = data.Bytes()
+	    }
 	}
 	if dec.V == nil {
 		return errors.New("missing required field 'v' for TxData")
