@@ -25,11 +25,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"math/big"
+	"os"
+	"path/filepath"
 	"runtime/debug"
 	"strings"
 	"time"
 
+	"github.com/BurntSushi/toml"
 	"github.com/fsn-dev/cryptoCoins/coins/eth/ethclient"
 	"github.com/fsn-dev/cryptoCoins/tools/common"
 	ethcrypto "github.com/fsn-dev/cryptoCoins/tools/crypto"
@@ -44,13 +48,6 @@ import (
 	"github.com/fsn-dev/cryptoCoins/coins/eth/sha3"
 	ctypes "github.com/fsn-dev/cryptoCoins/coins/types"
 )
-
-func ERC20Init() {
-	gasPrice = big.NewInt(8000000000)
-	gasLimit = uint64(100000)
-	url = config.ApiGateways.EthereumGateway.ApiAddress
-	chainConfig = params.RinkebyChainConfig
-}
 
 var (
 	gasPrice *big.Int
@@ -71,14 +68,57 @@ func RegisterTokenGetter(callback func(tokentype string) string) {
 	GetToken = callback
 }
 
-var Tokens map[string]string = map[string]string{
-	"ERC20GUSD": "0x28a79f9b0fe54a39a0ff4c10feeefa832eeceb78",
-	"ERC20BNB":  "0x7f30B414A814a6326d38535CA8eb7b9A62Bceae2",
-	"ERC20MKR":  "0x2c111ede2538400F39368f3A3F22A9ac90A496c7",
-	"ERC20HT":   "0x3C3d51f6BE72B265fe5a5C6326648C4E204c8B9a",
-	"ERC20BNT":  "0x14D5913C8396d43aB979D4B29F2102c1C65E18Db",
-	"ERC20RMBT": "0x72778a05fc72dd56d5b5a6bac2f045a2a1eb78f2",
-	"ERC20USDT": "0x2f915d8c6d8340e1291492df153706c1beca50e8",
+func ERC20Init() {
+        gasPrice = big.NewInt(8000000000)
+        gasLimit = uint64(100000)
+        url = config.ApiGateways.EthereumGateway.ApiAddress
+        LoadErc20Config()
+        chainConfig = params.RinkebyChainConfig
+}
+
+var erc20Config struct {
+        Erc20Config struct {
+                Tokens map[string]string
+        }
+}
+
+var Tokens map[string]string
+
+func HasToken(name string) bool {
+	if Tokens[name] == "" {
+		LoadErc20Config()
+		if Tokens[name] == "" {
+			return false
+		}
+	}
+	return true
+}
+
+func LoadErc20Config() {
+        datadir := config.DefaultDataDir()
+        configfilepath := filepath.Join(datadir, "erc20.toml")
+        if exists, _ := config.PathExists(configfilepath); exists {
+                _, err := toml.DecodeFile(configfilepath, &erc20Config)
+                if err != nil {
+                        fmt.Printf("erc20 config error, %v\n", err)
+                }
+        } else {
+                fmt.Printf("use default config, %+v\n", erc20DefaultConfig)
+                _, err := toml.Decode(erc20DefaultConfig, &erc20Config)
+                if err != nil {
+                        fmt.Printf("erc20 config error, %v\n", err)
+                }
+                if f, err := os.Create(configfilepath); err != nil || f == nil {
+                        fmt.Printf("make file %v error: %+v", configfilepath, err)
+                } else {
+                        _, err = io.WriteString(f, erc20DefaultConfig)
+                        if err != nil {
+                                fmt.Printf("make file %v error: %+v", configfilepath, err)
+                        }
+                }
+        }
+        Tokens = erc20Config.Erc20Config.Tokens
+        fmt.Printf("\n!!!!!!\nErc20 Tokens: %+v\n\n", Tokens)
 }
 
 type ERC20Handler struct {
@@ -91,7 +131,10 @@ func NewERC20Handler() *ERC20Handler {
 
 func NewERC20TokenHandler(tokenType string) *ERC20Handler {
 	if Tokens[tokenType] == "" {
-		return nil
+		LoadErc20Config()
+		if Tokens[tokenType] == "" {
+			return nil
+		}
 	}
 	return &ERC20Handler{
 		TokenType: tokenType,
@@ -159,9 +202,8 @@ func (h *ERC20Handler) BuildUnsignedTransaction(fromAddress, fromPublicKey, toAd
 	}
 	transaction, hash, err := erc20_newUnsignedTransaction(client, fromAddress, toAddress, amount, gasPrice, gasLimit, h.TokenType, memo)
 	if err != nil || transaction == nil || hash == nil {
-	    return
+		return
 	}
-
 	hashStr := hash.Hex()
 	if hashStr[:2] == "0x" {
 		hashStr = hashStr[2:]
@@ -536,17 +578,21 @@ func erc20_newUnsignedTransaction(client *ethclient.Client, dcrmAddress string, 
 	chainID, err := client.NetworkID(context.Background())
 
 	if err != nil {
-	    fmt.Printf("===============erc20_newUnsignedTransaction,chainId = %v,err = %v =======================\n",chainID,err)
+		fmt.Printf("===============erc20_newUnsignedTransaction,chainId = %v,err = %v =======================\n",chainID,err)
 		//return nil, nil, err
-	    chainID = chainConfig.ChainID
+		chainID = chainConfig.ChainID
 	}
 
 	tokenAddressHex, ok := Tokens[tokenType]
-	if ok {
+	if ok && tokenAddressHex != "" {
 	} else {
-		fmt.Printf("===============erc20_newUnsignedTransaction,tokenType = %v,err = %v =======================\n",tokenType,err)
-		err = errors.New("token not supported")
-		return nil, nil, err
+		LoadErc20Config()
+		tokenAddressHex, ok = Tokens[tokenType]
+		if !ok || tokenAddressHex == "" {
+			fmt.Printf("===============erc20_newUnsignedTransaction,tokenType = %v,err = %v =======================\n",tokenType,err)
+			err = errors.New("token not supported")
+			return nil, nil, err
+		}
 	}
 
 	if gasPrice == nil {
@@ -614,8 +660,8 @@ func erc20_newUnsignedTransaction(client *ethclient.Client, dcrmAddress string, 
 func makeSignedTransaction(client *ethclient.Client, tx *ctypes.Transaction, rsv string) (*ctypes.Transaction, error) {
 	chainID, err := client.NetworkID(context.Background())
 	if err != nil {
-	    chainID = chainConfig.ChainID
-	//	return nil, err
+		chainID = chainConfig.ChainID
+		//return nil, err
 	}
 	fmt.Println("=============makeSignedTransaction,chain id = %v ============", chainID)
 	message, err := hex.DecodeString(rsv)
