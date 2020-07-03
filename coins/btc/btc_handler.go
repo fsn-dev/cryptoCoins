@@ -26,7 +26,7 @@ import (
 	"github.com/btcsuite/btcwallet/wallet/txauthor"
 	"github.com/btcsuite/btcwallet/wallet/txrules"
 
-	"github.com/fsn-dev/cryptoCoins/tools/crypto"
+	//"github.com/fsn-dev/cryptoCoins/tools/crypto"
 	//	"github.com/fsn-dev/cryptoCoins/log"
 	"github.com/fsn-dev/cryptoCoins/coins/config"
 	rpcutils "github.com/fsn-dev/cryptoCoins/coins/rpcutils"
@@ -334,7 +334,7 @@ func (h *BTCHandler) MakeSignedTransaction(rsv []string, transaction interface{}
 		signbytes := append(sign.Serialize(), byte(hashType))
 
 		// 从rsv中恢复公钥
-		rsv_bytes, _ := hex.DecodeString(rsv[i])
+		/*rsv_bytes, _ := hex.DecodeString(rsv[i])
 		txhashbytes, _ := hex.DecodeString(transaction.(*AuthoredTx).Digests[i])
 		pkData, err1 := crypto.Ecrecover(txhashbytes, rsv_bytes)
 		if err1 != nil {
@@ -349,7 +349,8 @@ func (h *BTCHandler) MakeSignedTransaction(rsv []string, transaction interface{}
 			//err = fmt.Errorf("recover public key error: got %v, want %v", cPkData, cPkData1)
 			//return
 			cPkData = cPkData1
-		}
+		}*/
+		cPkData := transaction.(*AuthoredTx).PubKeyData
 
 		sigScript, err2 := txscript.NewScriptBuilder().AddData(signbytes).AddData(cPkData).Script()
 		if err2 != nil {
