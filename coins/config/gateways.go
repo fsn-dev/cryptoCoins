@@ -29,8 +29,8 @@ ApiAddress = "https://api.shasta.trongrid.io"
 
 # bitcoind testnet3
 [BitcoinGateway]
-#ElectrsAddress = "http://5.189.139.168:4000"
-ElectrsAddress = "http://47.107.50.83:3002"
+ElectrsAddress = "http://5.189.139.168:4000"
+#ElectrsAddress = "http://47.107.50.83:3002"
 Host = "5.189.139.168"
 Port = 8000
 User = "xxmm"
