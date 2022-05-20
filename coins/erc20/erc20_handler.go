@@ -98,27 +98,17 @@ func LoadErc20Config() {
         datadir := config.DefaultDataDir()
         configfilepath := filepath.Join(datadir, "erc20.toml")
         if exists, _ := config.PathExists(configfilepath); exists {
-                _, err := toml.DecodeFile(configfilepath, &erc20Config)
-                if err != nil {
-                        fmt.Printf("erc20 config error, %v\n", err)
-                }
+               toml.DecodeFile(configfilepath, &erc20Config)
         } else {
-                fmt.Printf("use default config, %+v\n", erc20DefaultConfig)
-                _, err := toml.Decode(erc20DefaultConfig, &erc20Config)
-                if err != nil {
-                        fmt.Printf("erc20 config error, %v\n", err)
-                }
-                if f, err := os.Create(configfilepath); err != nil || f == nil {
-                        fmt.Printf("make file %v error: %+v", configfilepath, err)
-                } else {
-                        _, err = io.WriteString(f, erc20DefaultConfig)
-                        if err != nil {
-                                fmt.Printf("make file %v error: %+v", configfilepath, err)
-                        }
-                }
+                //fmt.Printf("use default config, %+v\n", erc20DefaultConfig)
+               toml.Decode(erc20DefaultConfig, &erc20Config)
+                f, err := os.Create(configfilepath)
+		if err == nil && f != nil {
+                        io.WriteString(f, erc20DefaultConfig)
+		}
         }
         Tokens = erc20Config.Erc20Config.Tokens
-        fmt.Printf("\n!!!!!!\nErc20 Tokens: %+v\n\n", Tokens)
+        //fmt.Printf("\n!!!!!!\nErc20 Tokens: %+v\n\n", Tokens)
 }
 
 type ERC20Handler struct {
