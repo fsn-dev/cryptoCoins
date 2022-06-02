@@ -78,19 +78,40 @@ func ERC20Init() {
 
 var erc20Config struct {
         Erc20Config struct {
-                Tokens map[string]string
+                //Tokens map[string]string
+                Tokens *common.SafeMap 
         }
 }
 
-var Tokens map[string]string
+//var Tokens map[string]string
+var Tokens *common.SafeMap = common.NewSafeMap(10) 
 
 func HasToken(name string) bool {
-	if Tokens[name] == "" {
+	/*if Tokens[name] == "" {
 		LoadErc20Config()
 		if Tokens[name] == "" {
 			return false
 		}
+	}*/
+
+	na,exist := Tokens.ReadMap(name)
+	if !exist {
+	    return false
 	}
+
+	nas := na.(string)
+	if nas == "" {
+	    LoadErc20Config()
+	    na,exist = Tokens.ReadMap(name)
+	    if !exist {
+		return false
+	    }
+	    nas = na.(string)
+	    if nas == "" {
+		    return false
+	    }
+	}
+
 	return true
 }
 
@@ -120,12 +141,32 @@ func NewERC20Handler() *ERC20Handler {
 }
 
 func NewERC20TokenHandler(tokenType string) *ERC20Handler {
-	if Tokens[tokenType] == "" {
+	/*if Tokens[tokenType] == "" {
 		LoadErc20Config()
 		if Tokens[tokenType] == "" {
 			return nil
 		}
+	}*/
+
+	tot,exist := Tokens.ReadMap(tokenType)
+	if !exist {
+	    return nil
 	}
+
+	tots := tot.(string)
+	if tots == "" {
+	    LoadErc20Config()
+	    tot,exist = Tokens.ReadMap(tokenType)
+	    if !exist {
+		return nil
+	    }
+	    tots = tot.(string)
+
+	    if tots == "" {
+		    return nil
+	    }
+	}
+
 	return &ERC20Handler{
 		TokenType: tokenType,
 	}
@@ -297,13 +338,26 @@ func (h *ERC20Handler) GetTransactionInfo(txhash string) (*ctypes.TransactionInf
 		err = err2
 		fmt.Printf("========ERC20 GetTransactionInfo========", "msg", msg)
 		contractAddress := msg.To().Hex()
-		for token, addr := range Tokens {
+		/*for token, addr := range Tokens {
 			fmt.Printf("=========ERC20 GetTransactionInfo===============", "contractAddress", contractAddress, "addr", addr)
 			if strings.EqualFold(contractAddress, addr) {
 				jsonstring = `{"tokenType":"` + token + `"}`
 				break
 			}
+		}*/
+
+		tokentmp,addrtmp := Tokens.ListMap()
+		l := len(tokentmp)
+		for i:=0;i<l;i++ {
+		    token := tokentmp[i]
+		    addr := addrtmp[i].(string)
+		    fmt.Printf("=========ERC20 GetTransactionInfo===============", "contractAddress", contractAddress, "addr", addr)
+		    if strings.EqualFold(contractAddress, addr) {
+			    jsonstring = `{"tokenType":"` + token + `"}`
+			    break
+		    }
 		}
+
 		fmt.Printf("========ERC20 GetTransactionInfo========", "token type", jsonstring)
 		//bug
 		if jsonstring == "" {
@@ -443,7 +497,14 @@ func (h *ERC20Handler) GetAddressBalance(address string, jsonstring string) (bal
 		}*/
 
 	//tokenAddr := Tokens[tokenType.(string)]
-	tokenAddr := Tokens[h.TokenType]
+	//tokenAddr := Tokens[h.TokenType]
+	tokenAddrtmp,exist := Tokens.ReadMap(h.TokenType)
+	if !exist {
+	    err = errors.New("get token type fail")
+	    return
+	}
+
+	tokenAddr := tokenAddrtmp.(string)
 	fmt.Printf("=============GetAddressBalance=============", "tokenType.(string)", h.TokenType, "tokenAddr", tokenAddr)
 	if tokenAddr == "" {
 		err = fmt.Errorf("Token not supported")
@@ -573,12 +634,14 @@ func erc20_newUnsignedTransaction(client *ethclient.Client, dcrmAddress string, 
 		chainID = chainConfig.ChainID
 	}
 
-	tokenAddressHex, ok := Tokens[tokenType]
-	if ok && tokenAddressHex != "" {
+	//tokenAddressHex, ok := Tokens[tokenType]
+	tokenAddressHex,ok := Tokens.ReadMap(tokenType)
+	if ok && (tokenAddressHex.(string)) != "" {
 	} else {
 		LoadErc20Config()
-		tokenAddressHex, ok = Tokens[tokenType]
-		if !ok || tokenAddressHex == "" {
+		//tokenAddressHex, ok = Tokens[tokenType]
+		tokenAddressHex, ok = Tokens.ReadMap(tokenType)
+		if !ok || (tokenAddressHex.(string)) == "" {
 			fmt.Printf("===============erc20_newUnsignedTransaction,tokenType = %v,err = %v =======================\n",tokenType,err)
 			err = errors.New("token not supported")
 			return nil, nil, err
@@ -607,7 +670,7 @@ func erc20_newUnsignedTransaction(client *ethclient.Client, dcrmAddress string, 
 	value := big.NewInt(0)
 
 	toAddress := common.HexToAddress(toAddressHex)
-	tokenAddress := common.HexToAddress(tokenAddressHex)
+	tokenAddress := common.HexToAddress(tokenAddressHex.(string))
 
 	transferFnSignature := []byte("transfer(address,uint256)")
 	hash := sha3.NewKeccak256()

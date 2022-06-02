@@ -58,9 +58,10 @@ func Init() {
 	erc20.RegisterTokenGetter(func(tokentype string) string {
 		// TODO ¿¿¿ ???
 		//return erc20.Tokens[tokentype]
-		ret, ok := erc20.Tokens[tokentype]
+		//ret, ok := erc20.Tokens[tokentype]
+		ret, ok := erc20.Tokens.ReadMap(tokentype)
 		if ok {
-			return ret
+			return ret.(string)
 		} else {
 			return ""
 		}
